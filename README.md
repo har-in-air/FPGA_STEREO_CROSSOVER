@@ -8,6 +8,9 @@
 <img src="fpga_resource_usage.png" />
 
 * ESP32 dynamically updates biquad IIR filter coefficients via SPI interface to FPGA.
+
+<img src="load_coeffs.png" />
+
 * FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass filtered data on WS=0, High-pass filtered data on WS=1.
 * Dual TI TAS5753MD I2S stereo power amplifier boards. Each processes a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
 

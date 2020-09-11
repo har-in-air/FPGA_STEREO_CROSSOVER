@@ -98,9 +98,6 @@ void biquad_loadCoeffs(double fsHz, double fcHz, double Q){
     inx, coeff_tbl[inx][0], coeff_tbl[inx][1], coeff_tbl[inx][2], coeff_tbl[inx][3], coeff_tbl[inx][4]);
     }
 
-   uint8_t dummy[5] = {0};
-   biquad_spiTransfer(dummy);
-
     Serial.printf("\r\nLoading coefficients "); 
     for (inx = 0; inx < 10; inx++) {
       biquad_spiTransfer(coeff_tbl[inx]);

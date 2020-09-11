@@ -96,7 +96,8 @@ int64_t encoderCount = 0;
 
 void setup() {
     Serial.begin(115200);
-   pinMode(FPGA_CS, OUTPUT);
+    pinMode(FPGA_CS, OUTPUT);
+    digitalWrite(FPGA_CS, HIGH);
 
     encoder.attachHalfQuad(ENC_A, ENC_B);
     encoder.setCount(0);
