@@ -20,13 +20,21 @@
 
 # Prototype
 
+Top side of prototype board with ESP32 proto board, micro-SD breakout, 5V/3.3V dc-dc adapter, stacked TAS5753MD power amplifiers. Power supply
+here is 12V, but the DC-DC converter and power amplifier can handle up to 30V power supply.
+
 <img src="prototype_esp32_tas5753md.jpg" />
 
+Bottom side of prototype board with Waveshare FPGA prototyping board Core EP4CE6
+
 <img src="prototype_fpga.jpg" />
+
+Only the mid-woofers and tweeters are being driven by the dual TAS5753MD amplifiers.
 
 <img src="prototype_speakers.jpg" />
 
 # Credits
+
 * [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
 * [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
 
