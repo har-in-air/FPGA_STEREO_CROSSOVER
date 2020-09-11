@@ -13,21 +13,29 @@
 
 # Development platform
 
-* Quartus Prime Lite 19.1 on Ubuntu 20.04 amdx64
-* Arduino ESP32 1.04
+* Quartus Prime Lite 19.1
+* ESP32-Arduino 1.04 package, Arduino 1.8.13
+* Ubuntu 20.04 amdx64 
 
-# Data constraints
+# Constraints
 
 * I2S 16bit or 24bit, sample rate 44.1kHz or 48kHz. 
-* Two-way crossover frequency of 3300Hz with Q = 0.707 (Butterworth)
+* Two-way crossover frequency = 3300Hz, filter Q = 0.707 (Butterworth)
 
 # Prototype
 
-Top side of prototype board with ESP32 breakout, micro-SD breakout, rotary encoder for volume control, 5V & 3.3V dc-dc converter module, stacked TAS5753MD I2S power amplifiers. Now connected to 12V@3A power supply brick, but the DC-DC converter and power amplifier can handle up to 30V.
+Top side of prototype board 
+* ESP32 breakout board
+* Micro-SD breakout board
+* Rotary encoder for volume control
+* 5V dc-dc converter and 3.3V LDO regulator module
+* Stacked TAS5753MD I2S power amplifiers
+* Now connected to 12V@3A power supply brick, but the DC-DC converter and TAS5753MD power amplifiers can handle up to 30V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
-Bottom side of prototype board with Waveshare FPGA prototyping board Core EP4CE6.
+Bottom side of prototype board 
+* Waveshare Core EP4CE6 development board.
 
 <img src="prototype_fpga.jpg" />
 
