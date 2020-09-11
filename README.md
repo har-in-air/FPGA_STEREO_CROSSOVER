@@ -20,7 +20,7 @@
 
 # Prototype
 
-Top side of prototype board with ESP32 proto board, micro-SD breakout, rotary encoder for volume control, 5V/3.3V dc-dc adapter, stacked TAS5753MD power amplifiers. 12V power supply, but the DC-DC converter and power amplifier can handle up to 30V.
+Top side of prototype board with ESP32 proto board, micro-SD breakout, rotary encoder for volume control, 5V/3.3V dc-dc adapter, stacked TAS5753MD power amplifiers. Connected to 12V@3A power supply brick, but the DC-DC converter and power amplifier can handle up to 30V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
