@@ -1,15 +1,15 @@
 # FPGA_STEREO_CROSSOVER
 
-* Stereo digital 2-way crossover filters implemented on FPGA, processing I2S stereo audio stream. 
-* Driven by ESP32 generating I2S digital audio stream with input from .wav / .mp3 files on a micro-SD card.  
-* The FPGA I2S module is a slave, i.e. it is driven by external MCLK, BCK and WS clocks. The audio processing modules are clocked by MCK.
-* FPGA processing implemented on Altera Cyclone IV EP4CE6E22
+* Stereo digital 2-way crossover filters implemented on FPGA, processing an I2S stereo audio stream. 
+* ESP32 reads .wav / .mp3 files on a micro-SD card and generates I2S digital stereo audio stream (16-bit, 44.1kHz or 48kHz).  
+* FPGA I2S module is a slave, i.e. it is driven by external MCLK, BCK and WS clocks. The audio processing modules are clocked by MCK.
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22
 
 <img src="fpga_resource_usage.png" />
 
-* Biquad IIR filter coefficients dynamically updated by ESP32 via FPGA slave SPI module
-* FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass filtered data on WS=0, High-pass filtered data on WS=1
-* Dual TI TAS5753MD stereo I2S power amplifier boards. Each processes a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
+* ESP32 dynamically updates biquad IIR filter coefficients via SPI interface to FPGA.
+* FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass filtered data on WS=0, High-pass filtered data on WS=1.
+* Dual TI TAS5753MD I2S stereo power amplifier boards. Each processes a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
 
 # Development platform
 
@@ -23,15 +23,15 @@
 
 # Prototype
 
-Top side of prototype board with ESP32 proto board, micro-SD breakout, rotary encoder for volume control, 5V/3.3V dc-dc adapter, stacked TAS5753MD power amplifiers. Connected to 12V@3A power supply brick, but the DC-DC converter and power amplifier can handle up to 30V.
+Top side of prototype board with ESP32 breakout, micro-SD breakout, rotary encoder for volume control, 5V & 3.3V dc-dc converter module, stacked TAS5753MD I2S power amplifiers. Now connected to 12V@3A power supply brick, but the DC-DC converter and power amplifier can handle up to 30V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
-Bottom side of prototype board with Waveshare FPGA prototyping board Core EP4CE6
+Bottom side of prototype board with Waveshare FPGA prototyping board Core EP4CE6.
 
 <img src="prototype_fpga.jpg" />
 
-Only the mid-woofers and tweeters are being driven by the dual TAS5753MD amplifiers. The (sub)woofers are disconnected.
+The mid-woofers and tweeters are driven by the dual TAS5753MD amplifiers. The (sub)woofers are disconnected.
 
 <img src="prototype_speakers.jpg" />
 
