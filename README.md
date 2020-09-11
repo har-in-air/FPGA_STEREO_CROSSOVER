@@ -3,10 +3,13 @@
 * Stereo digital 2-way crossover filters implemented on FPGA, processing I2S stereo audio stream. 
 * Driven by ESP32 generating I2S digital audio stream with input from .wav / .mp3 files on a micro-SD card.  
 * The FPGA I2S module is a slave, i.e. it is driven by external MCLK, BCK and WS clocks. The audio processing modules are clocked by MCK.
-* FPGA processing implemented on Altera Cyclone IV FPGA EP4CE6E22
-* Biquad IIR filter coefficients dynamically updated via slave SPI interface on FPGA connected to ESP32
-* FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass on WS=0, High-pass on WS=1
-* Dual TI TAS5753MD stereo I2s power amplifier boards, each processing a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
+* FPGA processing implemented on Altera Cyclone IV EP4CE6E22
+
+<img src="fpga_resource_usage.png" />
+
+* Biquad IIR filter coefficients dynamically updated by ESP32 via FPGA slave SPI module
+* FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass filtered data on WS=0, High-pass filtered data on WS=1
+* Dual TI TAS5753MD stereo I2S power amplifier boards. Each processes a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
 
 # Development platform
 
