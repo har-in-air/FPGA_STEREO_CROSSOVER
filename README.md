@@ -25,3 +25,8 @@
 <img src="prototype_fpga.jpg" />
 
 <img src="prototype_speakers.jpg" />
+
+# Credits
+* [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
+* [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
+
