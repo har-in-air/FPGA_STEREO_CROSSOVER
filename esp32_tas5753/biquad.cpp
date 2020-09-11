@@ -1,3 +1,5 @@
+// credit : https://github.com/YetAnotherElectronicsChannel/STM32_Calculating_IIR_Parameters
+
 #include <Arduino.h>
 #include <SPI.h>
 #include <stdint.h>
