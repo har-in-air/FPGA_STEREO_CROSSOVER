@@ -22,6 +22,11 @@
 * I2S 16bit or 24bit, sample rate 44.1kHz or 48kHz. 
 * Two-way crossover frequency = 3300Hz, filter Q = 0.707 (Butterworth)
 
+# Credits
+
+* [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
+* [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
+
 # Prototype
 
 Top side of prototype board 
@@ -43,8 +48,5 @@ The mid-woofers and tweeters are driven by the dual TAS5753MD amplifiers. The (s
 
 <img src="prototype_speakers.jpg" />
 
-# Credits
 
-* [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
-* [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
 
