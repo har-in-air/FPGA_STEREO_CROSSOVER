@@ -28,7 +28,7 @@ Bottom side of prototype board with Waveshare FPGA prototyping board Core EP4CE6
 
 <img src="prototype_fpga.jpg" />
 
-Only the mid-woofers and tweeters are being driven by the dual TAS5753MD amplifiers.
+Only the mid-woofers and tweeters are being driven by the dual TAS5753MD amplifiers. The (sub)woofers are disconnected.
 
 <img src="prototype_speakers.jpg" />
 
