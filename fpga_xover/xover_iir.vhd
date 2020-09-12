@@ -59,7 +59,13 @@ signal s_out_z2_hpf 	: signed (31 downto 0)	:= (others=>'0');
 signal s_out_z1_lpf 	: signed (31 downto 0)	:= (others=>'0');
 signal s_out_z2_lpf 	: signed (31 downto 0)	:= (others=>'0');
 
+signal s_iir_hpf 	: signed (31 downto 0)	:= (others=>'0');
+signal s_iir_lpf 	: signed (31 downto 0)	:= (others=>'0');
+
 begin
+
+o_iir_lpf <= s_iir_lpf;
+o_iir_hpf <= s_iir_hpf;
 
 -- multiplier
 process(s_mult_in_a, s_mult_in_b)
@@ -123,7 +129,7 @@ if (rising_edge(i_mck)) then
         
       elsif (state = 6) then
         --save result to output_HPF, save all HPF output delay registers
-        o_iir_hpf		<= resize(s_temp,32);
+        s_iir_hpf		<= resize(s_temp,32);
         s_out_z1_hpf	<= resize(s_temp,32);
         s_out_z2_hpf	<= s_out_z1_hpf;
 		state			<= 7;
@@ -176,7 +182,7 @@ if (rising_edge(i_mck)) then
       elsif (state = 13) then
         --save result to output_LPF, save all LPF output delay registers
 		  -- save input delay registers
-        o_iir_lpf		<= resize(s_temp,32);
+        s_iir_lpf		<= resize(s_temp,32);
         s_out_z1_lpf	<= resize(s_temp,32);
         s_out_z2_lpf	<= s_out_z1_lpf;
         s_in_z2			<= s_in_z1;
