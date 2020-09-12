@@ -16,6 +16,10 @@
 #include "Audio.h"
 #include "mp3_decoder.h"
 #include "aac_decoder.h"
+// added HN for computing IIR filter coefficients based on sampling rate
+// and transmitting the coefficients to the FPGA
+#include "tas5753md.h"
+#include "biquad.h"
 
 //---------------------------------------------------------------------------------------------------------------------
 AudioBuffer::AudioBuffer(){ ;
@@ -436,6 +440,11 @@ bool Audio::connecttoFS(fs::FS &fs, String file){
             sprintf(chbuf, "DataRate=%u", dr);        audio_info(chbuf);
             sprintf(chbuf, "DataBlockSize=%u", dbs); audio_info(chbuf);
             sprintf(chbuf, "BitsPerSample=%u", bps); audio_info(chbuf);
+            if (sr != 0 && sr != m_sampleRate) {
+                  tas5753md_mute();
+                  biquad_loadCoeffs((double)sr, 3300.0, 0.707);
+                  tas5753md_unmute();
+                  }            
         }
 
         if(fc != 1){
@@ -1822,7 +1831,12 @@ int Audio::sendBytes(uint8_t *data, size_t len) {
                 sprintf(chbuf,"Channels=%i", MP3GetChannels() );
                 if(audio_info) audio_info(chbuf);
             }
-            if (MP3GetSampRate() != lastSampleRate) {
+            if ((uint32_t)MP3GetSampRate() != m_sampleRate) {
+                if ((uint32_t) MP3GetSampRate() != 0) {
+                  tas5753md_mute();
+                  biquad_loadCoeffs((double)MP3GetSampRate(), 3300.0, 0.707);
+                  tas5753md_unmute();
+                  }
                 setSampleRate(MP3GetSampRate());
                 lastSampleRate = MP3GetSampRate();
                 sprintf(chbuf,"SampleRate=%i",MP3GetSampRate());
@@ -1857,6 +1871,11 @@ int Audio::sendBytes(uint8_t *data, size_t len) {
                 if(audio_info) audio_info(chbuf);
             }
             if (AACGetSampRate() != lastSampleRate) {
+                if ((int) AACGetSampRate() != 0) {
+                  tas5753md_mute();
+                  biquad_loadCoeffs((double)AACGetSampRate(), 3300.0, 0.707);
+                  tas5753md_unmute();
+                  }              
                 setSampleRate(AACGetSampRate());
                 lastSampleRate = AACGetSampRate();
                 sprintf(chbuf,"AAC SampleRate=%i",AACGetSampRate() * getChannels());
@@ -2129,5 +2148,3 @@ uint32_t Audio::inBufferFilled(){
 uint32_t Audio::inBufferFree(){
     return InBuff.freeSpace();
 }
-
-

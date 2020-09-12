@@ -36,16 +36,30 @@
 
 
 #ifdef SDCARD
-/* audiophile3.mp3
- *  baby_elephant.wav
- *  muratteri.wav
+/*
+ * uchaswas.wav
+ * muratteri.wav
  * dialtone_441_24.wav
  * equinox_48khz.wav
  * sine_441_24.wav
+ * baby_elephant.wav
+ * rejoicing.wav
+ * volcano.wav
+ * fanfare.wav
+ * cosmic_hippo.wav
+ * dewdrops.wav
+ * interlude.wav
+ * global_safari.wav
+ * sdan_jack_of_speed.mp3
+ * soulwax_binary.mp3
+ * srv_tin_pan_alley.mp3
  * yst_do_that.mp3
  * yst_hotel_california.mp3
+ * cb_das_spiegel.mp3
  * yst_speak_softly.mp3
  * one_minute.mp3
+ * kyla.mp3
+ * hnk002.mp3
  */
 
 #include "SD.h"
@@ -56,17 +70,22 @@
 #define SPI_MISO      19
 #define SPI_SCK       18
 
-char Songs[10][30] = {
-  "yst_do_that.mp3", 
+char Songs[15][30] = {
+  "rejoicing.wav",
+  "volcano.wav",
+  "fanfare.wav"
+  "dewdrops.wav", 
+  "baby_elephant.wav",
+  "muratteri.wav",
+  "equinox_48khz.wav",
+  "hnk002.mp3",
   "soulwax_binary.mp3", 
   "srv_tin_pan_alley.mp3", 
   "sdan_jack_of_speed.mp3",
   "clannad.mp3",
-  "dewdrops.wav", 
   "yst_speak_softly.mp3", 
-  "global_safari.wav",
-  "baby_elephant.wav",
-  "muratteri.wav"
+  "kyla.mp3",
+  "one_minute_test.mp3"
   };
 
 int SongIndex = 0;
@@ -94,6 +113,8 @@ String password = "----";
 ESP32Encoder encoder;
 int64_t encoderCount = 0;
 
+
+  
 void setup() {
     Serial.begin(115200);
     pinMode(FPGA_CS, OUTPUT);
@@ -132,13 +153,11 @@ void setup() {
     audio.setVolume(10); // 0...21
 
 #ifdef SDCARD    
-      SongIndex = random(0,10);
-      audio.connecttoFS(SD, Songs[SongIndex]);
-      //audio.connecttoFS(SD, "one_minute.mp3");
+      SongIndex = random(0,15);
+      //audio.connecttoFS(SD, Songs[SongIndex]);
+      audio.connecttoFS(SD, "one_minute_test.mp3");
 #endif
-    tas5753md_mute();
-    biquad_loadCoeffs(44100.0, 3300.0, 0.707);
-    tas5753md_unmute();
+
     
 #ifdef WEB_RADIO
   //  audio.connecttohost("http://www.wdr.de/wdrlive/media/einslive.m3u");
@@ -179,7 +198,7 @@ void audio_id3data(const char *info){  //id3 metadata
 void audio_eof_mp3(const char *info){  //end of file
     Serial.print("eof_mp3     ");Serial.println(info);
     SongIndex++;
-    if (SongIndex >= 10) SongIndex = 0;
+    if (SongIndex >= 15) SongIndex = 0;
  //     SongIndex = random(0,10);
     audio.connecttoFS(SD, Songs[SongIndex]);
   }

@@ -111,8 +111,8 @@ void biquad_loadCoeffs(double fsHz, double fcHz, double Q){
       biquad_spiTransfer(rwbuf);
       Serial.printf("reg[%d] = 0x%02X%02X%02X%02X\r\n", inx, rwbuf[1],rwbuf[2],rwbuf[3],rwbuf[4]);
       }
-    
-    Serial.printf("\r\nUpdate biquad coefficients\r\n"); 
-    rwbuf[0] = 0x30;
+      
+    Serial.printf("\r\nFlag biquad coefficients OK to load\r\n"); 
+    rwbuf[0] = 0x30; // command to signal FPGA audiosystem to load new coefficients
     biquad_spiTransfer(rwbuf);
     }
