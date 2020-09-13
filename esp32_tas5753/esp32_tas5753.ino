@@ -13,9 +13,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
 //
 
-// original source from https://github.com/schreibfaul1/ESP32-audioI2S
+// above header, original source from https://github.com/schreibfaul1/ESP32-audioI2S
 // modified github.com/har-in-air for testing fpga-implemented stereo active 2-way crossover filter
-// driving dual TAS5753MD I2S power amplifiers.
+// driving dual TAS5753MD I2S power amplifiers. Changed default I2S pins, modify Audio class to update
+// FPGA biquad filter coefficients on reading .wav/.mp3 file sample rate settings.
 
 
 #include <Arduino.h>
@@ -124,7 +125,10 @@ void setup() {
     encoder.setCount(0);
     
 #ifdef TAS5753MD
-    tas5753md_config();
+    // failure configuring TAS5753MD, loop forever
+    if (tas5753md_config() == 0) {
+      while (1) delay(1);
+      }
 #endif
     
 #ifdef SDCARD    
@@ -155,7 +159,7 @@ void setup() {
 #ifdef SDCARD    
       SongIndex = random(0,15);
       //audio.connecttoFS(SD, Songs[SongIndex]);
-      audio.connecttoFS(SD, "one_minute_test.mp3");
+      audio.connecttoFS(SD, "hnk002.mp3");
 #endif
 
     

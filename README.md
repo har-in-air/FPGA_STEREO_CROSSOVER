@@ -39,7 +39,7 @@ Top side of prototype board
 * Rotary encoder for volume control
 * 5V dc-dc converter and 3.3V LDO regulator module
 * Stacked TAS5753MD I2S power amplifiers
-* Testing currently with a 12V@3A power supply. The TAS5753MD power amplifier is rated for 26V, and the 
+* Testing now with a 19.5V@4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
 DC-DC converter can handle input voltages up to 32V.
 
 <img src="prototype_esp32_tas5753md.jpg" />

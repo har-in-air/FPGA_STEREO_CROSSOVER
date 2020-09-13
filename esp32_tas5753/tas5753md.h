@@ -23,6 +23,7 @@
 #define TAS5753MD_REG_CHAN2_VOL       0x09
 #define TAS5753MD_REG_CHAN3_VOL       0x0A
 #define TAS5753MD_REG_VOL_CFG         0x0E
+#define TAS5753MD_REG_MOD_LIMIT       0x10
 #define TAS5753MD_REG_PWM_SHUTDOWN    0x19
 #define TAS5753MD_REG_OSC_TRIM        0x1B
 #define TAS5753MD_REG_INPUT_MUX       0x20
@@ -31,7 +32,7 @@
 #define TAS5753MD_REG_BANK_SW_CTRL    0x50
 
 
-void tas5753md_config(void);
+int  tas5753md_config(void);
 void tas5753md_mute(void);
 void tas5753md_unmute(void);
 void tas5753md_adjustVolume(int upDown);
