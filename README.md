@@ -1,28 +1,29 @@
 # FPGA_STEREO_CROSSOVER
 
-* Stereo digital 2-way crossover filters implemented on FPGA, processing an I2S stereo audio stream. 
-* ESP32 reads .wav / .mp3 files on a micro-SD card and generates I2S digital stereo audio stream (16-bit, 44.1kHz or 48kHz).  
-* FPGA I2S module is a slave, i.e. it is driven by external MCLK, BCK and WS clocks. The audio processing modules are clocked by MCK.
+* ESP32 reads .wav / .mp3 files on a micro-SD card and generates I2S digital stereo audio stream (16-bit, 44.1kHz or 48kHz) as
+a master driving MCK, BCK and WS clocks.
+* FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
+high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
+* FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loading use the system clock 50MHz.
 * Implemented in VHDL on Altera Cyclone IV EP4CE6E22
 
 <img src="fpga_resource_usage.png" />
 
-* ESP32 dynamically updates biquad IIR filter coefficients via SPI interface to FPGA.
+* ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and loads
+the filter coefficients via an SPI interface to the FPGA.
 
 <img src="load_coeffs.png" />
 
-* FPGA outputs dual I2S data streams, one for left channel and one for right channel. Low-pass filtered data on WS=0, High-pass filtered data on WS=1.
-* Dual TI TAS5753MD I2S stereo power amplifier boards. Each processes a single channel (L or R)  low-pass-filtered and high-pass-filtered data.
+# Software development platform
 
-# Development platform
-
-* Quartus Prime Lite 19.1
-* ESP32-Arduino 1.04 package, Arduino 1.8.13
+* Intel Quartus Prime Lite 19.1
+* Arduino 1.8.13 with arduino-ESP32 1.04 package
 * Ubuntu 20.04 amdx64 
 
 # Constraints
 
-* I2S 16bit or 24bit, sample rate 44.1kHz or 48kHz. 
+* The FPGA modules can handle I2S 16bit or 24bit, sample rate 44.1kHz or 48kHz. The ESP32 code currently can only
+handle 16bit wav/mp3 files.
 * Two-way crossover frequency = 3300Hz, filter Q = 0.707 (Butterworth)
 
 # Credits
@@ -38,16 +39,17 @@ Top side of prototype board
 * Rotary encoder for volume control
 * 5V dc-dc converter and 3.3V LDO regulator module
 * Stacked TAS5753MD I2S power amplifiers
-* Now connected to 12V@3A power supply brick, but the DC-DC converter and TAS5753MD power amplifiers can handle up to 30V.
+* Testing currently with a 12V@3A power supply. The TAS5753MD power amplifier is rated for 26V, and the 
+DC-DC converter can handle input voltages up to 32V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
 Bottom side of prototype board 
-* Waveshare Core EP4CE6 development board.
+* Waveshare Core EP4CE6 FPGA development board.
 
 <img src="prototype_fpga.jpg" />
 
-The mid-woofers and tweeters are driven by the dual TAS5753MD amplifiers. The (sub)woofers are disconnected.
+The mid-woofers and tweeters are driven by the TAS5753MD amplifiers. The (sub)woofers are disconnected.
 
 <img src="prototype_speakers.jpg" />
 
