@@ -18,16 +18,18 @@
 // driving dual TAS5753MD I2S power amplifiers. Changed default I2S pins, modify Audio class to update
 // FPGA biquad filter coefficients on reading .wav/.mp3 file sample rate settings.
 
-
-#include <Arduino.h>
-#include "SPI.h"
-#include "WiFiMulti.h"
-#include "Audio.h"
-#include "biquad.h"
-
 #define TAS5753MD
 #define SDCARD
 //#define WEB_RADIO
+
+#include <Arduino.h>
+#include "SPI.h"
+#ifdef WEB_RADIO
+#include "WiFiMulti.h"
+#endif
+#include "Audio.h"
+#include "biquad.h"
+
 
 #ifdef TAS5753MD
 #include <Wire.h>
@@ -108,23 +110,24 @@ String password = "----";
 #endif
 
 
+#ifdef TAS5753MD
+
 #define ENC_A  39
 #define ENC_B  36
 
 ESP32Encoder encoder;
 int64_t encoderCount = 0;
-
+#endif
 
   
 void setup() {
     Serial.begin(115200);
     pinMode(FPGA_CS, OUTPUT);
     digitalWrite(FPGA_CS, HIGH);
-
+#ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);
     encoder.setCount(0);
     
-#ifdef TAS5753MD
     // failure configuring TAS5753MD, loop forever
     if (tas5753md_config() == 0) {
       while (1) delay(1);
@@ -159,7 +162,7 @@ void setup() {
 #ifdef SDCARD    
       SongIndex = random(0,15);
       //audio.connecttoFS(SD, Songs[SongIndex]);
-      audio.connecttoFS(SD, "hnk002.mp3");
+      audio.connecttoFS(SD, "dewdrops.wav");
 #endif
 
     
@@ -174,6 +177,7 @@ void setup() {
 }
  
 void loop(){
+  #ifdef TAS5753MD
     int64_t enc = encoder.getCount();
     if (enc != encoderCount) {
         int dir = enc > encoderCount ? 1 : -1;
@@ -181,6 +185,7 @@ void loop(){
         //Serial.println(dir);
         encoderCount = enc;
       }
+  #endif    
     audio.loop();
 /*    
     if(Serial.available()){ // put streamURL in serial monitor
