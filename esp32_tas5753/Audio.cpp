@@ -442,7 +442,7 @@ bool Audio::connecttoFS(fs::FS &fs, String file){
             sprintf(chbuf, "BitsPerSample=%u", bps); audio_info(chbuf);
             if (sr != 0 && sr != m_sampleRate) {
                   tas5753md_mute();
-                  biquad_loadCoeffs((double)sr, 3300.0, 0.707);
+                  biquad_loadCoeffs((double)sr, BIQUAD_CROSSOVER_FREQ_HZ, BIQUAD_Q);
                   tas5753md_unmute();
                   }            
         }
@@ -1834,7 +1834,7 @@ int Audio::sendBytes(uint8_t *data, size_t len) {
             if ((uint32_t)MP3GetSampRate() != m_sampleRate) {
                 if ((uint32_t) MP3GetSampRate() != 0) {
                   tas5753md_mute();
-                  biquad_loadCoeffs((double)MP3GetSampRate(), 3300.0, 0.707);
+                  biquad_loadCoeffs((double)MP3GetSampRate(), BIQUAD_CROSSOVER_FREQ_HZ, BIQUAD_Q);
                   tas5753md_unmute();
                   }
                 setSampleRate(MP3GetSampRate());

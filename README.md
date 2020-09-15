@@ -11,6 +11,13 @@ In this case some of the filter coefficients can be small
 and will benefit from the increased fractional resolution. 
 As a result, the FPGA embedded multiplier usage has gone up from 63% to 100%. Ah well.
 
+Crossover coefficients @ fs=44100Hz, fc=3300Hz, Q=0.707
+<img src="xover_3300Hz.png" />
+
+Crossover coefficients @ fs=44100Hz, fc=330Hz, Q=0.707
+<img src="xover_330Hz.png" />
+
+FPGA resource utilization with 2.38 coefficients
 <img src="fpga_resource_usage.png" />
 
 * ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and loads
