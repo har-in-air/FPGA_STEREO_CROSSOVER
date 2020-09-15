@@ -5,7 +5,11 @@ a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
 * FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loading use the system clock 50MHz.
-* Implemented in VHDL on Altera Cyclone IV EP4CE6E22
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22. I increased the filter coefficient precision from 2.30 to 2.38 as I want to
+be able to use the crossover biquad filters at lower frequencies e.g. 300Hz (sub-woofer crossover). 
+In this case some of the filter coefficients can be small 
+and will benefit from the increased fractional resolution. 
+As a result, the FPGA embedded multiplier usage has gone up from 63% to 100%. Ah well.
 
 <img src="fpga_resource_usage.png" />
 
