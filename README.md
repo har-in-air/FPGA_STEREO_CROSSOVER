@@ -31,9 +31,8 @@ the filter coefficients via an SPI interface to the FPGA.
 
 # Constraints
 
-* The FPGA modules can handle I2S 16bit or 24bit, sample rate 44.1kHz or 48kHz. The ESP32 code currently can only
-handle 16bit wav/mp3 files.
-* Two-way crossover frequency = 3300Hz, filter Q = 0.707 (Butterworth)
+* The FPGA modules can handle I2S 16/16 or 24/32 data packaging, with sample rate 44.1kHz or 48kHz. 
+The ESP32 code currently only reads wav/mp3 files encoded with 16bit data at 44.1kHz or 48kHz.
 
 # Credits
 
