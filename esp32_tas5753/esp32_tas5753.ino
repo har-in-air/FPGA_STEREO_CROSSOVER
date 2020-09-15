@@ -74,9 +74,9 @@
 #define SPI_SCK       18
 
 char Songs[15][30] = {
-  "interlude.wav",
-  "global_safari.wav",
-  "fanfare.wav"
+  "rejoicing.wav",
+  "volcano.wav",
+  "fanfare.wav",
   "dewdrops.wav", 
   "baby_elephant.wav",
   "muratteri.wav",
@@ -91,7 +91,7 @@ char Songs[15][30] = {
   "one_minute_test.mp3"
   };
 
-int SongIndex = 11;
+int SongIndex = 0;
 #endif
 
 
@@ -208,7 +208,7 @@ void audio_id3data(const char *info){  //id3 metadata
 void audio_eof_mp3(const char *info){  //end of file
     Serial.print("eof_mp3     ");Serial.println(info);
     SongIndex++;
-    if (SongIndex >= 15) SongIndex = 0;
+    if (SongIndex > 14) SongIndex = 0;
  //     SongIndex = random(0,10);
     audio.connecttoFS(SD, Songs[SongIndex]);
   }
