@@ -74,8 +74,8 @@
 #define SPI_SCK       18
 
 char Songs[15][30] = {
-  "rejoicing.wav",
-  "volcano.wav",
+  "interlude.wav",
+  "global_safari.wav",
   "fanfare.wav"
   "dewdrops.wav", 
   "baby_elephant.wav",
@@ -85,13 +85,13 @@ char Songs[15][30] = {
   "soulwax_binary.mp3", 
   "srv_tin_pan_alley.mp3", 
   "sdan_jack_of_speed.mp3",
-  "clannad.mp3",
+  "yst_hotel_california.mp3",
   "yst_speak_softly.mp3", 
   "kyla.mp3",
   "one_minute_test.mp3"
   };
 
-int SongIndex = 0;
+int SongIndex = 11;
 #endif
 
 
@@ -161,9 +161,9 @@ void setup() {
     audio.setVolume(10); // 0...21
 
 #ifdef SDCARD    
-      SongIndex = random(0,15);
-      //audio.connecttoFS(SD, Songs[SongIndex]);
-      audio.connecttoFS(SD, "dewdrops.wav");
+      //SongIndex = random(0,15);
+      audio.connecttoFS(SD, Songs[SongIndex]);
+      //audio.connecttoFS(SD, "dewdrops.wav");
 #endif
 
     
