@@ -25,7 +25,7 @@ port (
 -- internal system interface 
 	i_clk_audio : in std_logic;
 	i_reg_addr : in natural range 0 to c_NUM_REGS-1 := 0;
-	o_reg_data : out std_logic_vector(c_REG_NBITS-1 downto 0);
+	o_reg_data : out std_logic_vector(c_IIR_NBITS-1 downto 0);
 
 	o_reg_rdy : out std_logic
 	);
@@ -36,8 +36,8 @@ architecture rtl of load_coeffs is
 
 -- wires to spi_slave
 signal s_tx_load   : std_logic := '0';
-signal s_tx_data : std_logic_vector(c_REG_NBITS-1 downto 0) := (others => '0');
-signal s_rx_buf  : std_logic_vector(c_REG_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
+signal s_tx_data : std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
+signal s_rx_buf  : std_logic_vector(c_IIR_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
 signal s_rx_data_rdy    : std_logic := '0';
 signal s_rx_cmd_rdy    : std_logic := '0';
 
@@ -46,14 +46,14 @@ signal s_command : std_logic_vector(3 downto 0) := (others => '0');
 -- dpram with asynchronous clocks for a and b side
 -- a side, i_clk_sys, read/write by this module to load coefficients
 signal s_dpram_addr_a 	: natural range 0 to c_NUM_REGS-1 := 0;
-signal s_dpram_data_a 	: std_logic_vector(c_REG_NBITS-1 downto 0) := (others=>'0');
-signal s_dpram_q_a 		: std_logic_vector(c_REG_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_data_a 	: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_q_a 		: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
 signal s_dpram_we_a 	: std_logic := '0';
 
 -- b side, i_clk_audio, read only by audiosystem module
 signal s_dpram_addr_b 	: natural range 0 to c_NUM_REGS-1 := 0;
-signal s_dpram_data_b 	: std_logic_vector(c_REG_NBITS-1 downto 0) := (others=>'0');
-signal s_dpram_q_b 		: std_logic_vector(c_REG_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_data_b 	: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_q_b 		: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
 signal s_dpram_we_b 		: std_logic := '0';
 
 signal s_reg_rdy : std_logic := '0';
@@ -123,8 +123,8 @@ elsif rising_edge(i_clk_sys) then
 	case state_top is
 	when IDLE =>
 		if s_rx_cmd_rdy = '1' then
-			s_command <= s_rx_buf(c_REG_NBITS+7 downto c_REG_NBITS+4);
-			s_dpram_addr_a <= to_integer(unsigned(s_rx_buf(c_REG_NBITS+3 downto c_REG_NBITS)));
+			s_command <= s_rx_buf(c_IIR_NBITS+7 downto c_IIR_NBITS+4);
+			s_dpram_addr_a <= to_integer(unsigned(s_rx_buf(c_IIR_NBITS+3 downto c_IIR_NBITS)));
 			state_top <=  CMD;
 		else 
 			state_top <= IDLE;
@@ -146,7 +146,7 @@ elsif rising_edge(i_clk_sys) then
 	  		
 	when WT_WR_DATA => -- on reception of data_rdy synchronized flag
 		if s_rx_data_rdy = '1' then 		
-	  		s_dpram_data_a <= s_rx_buf(c_REG_NBITS-1 downto 0);
+	  		s_dpram_data_a <= s_rx_buf(c_IIR_NBITS-1 downto 0);
 	  		state_top <= WR_DATA; 
 		else 
 			state_top <= WT_WR_DATA;

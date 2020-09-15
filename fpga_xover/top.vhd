@@ -37,12 +37,14 @@ architecture rtl of top is
 
 -- signals for coefficient loading
 signal s_coeff_addr 	: natural range 0 to c_NUM_REGS-1 := 0;
-signal s_coeff_data 	: std_logic_vector(c_REG_NBITS-1 downto 0);
+signal s_coeff_data 	: std_logic_vector(c_IIR_NBITS-1 downto 0);
 signal s_coeff_rdy  	: std_logic := '0';
 signal s_coeff_rdy_reg : std_logic_vector(1 downto 0) := (others => '0'); 
 
-type coeff_t is array(0 to c_NUM_REGS-1) of integer;
-signal s_coeff_tbl : coeff_t := (others => 0);
+--type coeff_t is signed(c_IIR_NBITS-1 downto 0);
+type coeff_array_t is array(0 to c_NUM_REGS-1) of signed(c_IIR_NBITS-1 downto 0);
+signal s_coeff_array : coeff_array_t := (others => (others => '0'));
+
 
 type state_tbl_t is (ST_IDLE, ST_ADDR, ST_DATA);
 signal state_tbl : state_tbl_t := ST_IDLE;
@@ -77,18 +79,18 @@ port map (
 --	i_hp_b2 => 	552653381
 	
 	-- LPF biquad coefficients
-	i_lp_a0 => s_coeff_tbl(0),
-	i_lp_a1 => s_coeff_tbl(1),
-	i_lp_a2 => s_coeff_tbl(2),
-	i_lp_b1 => s_coeff_tbl(3),
-	i_lp_b2 => s_coeff_tbl(4),
+	i_lp_a0 => s_coeff_array(0),
+	i_lp_a1 => s_coeff_array(1),
+	i_lp_a2 => s_coeff_array(2),
+	i_lp_b1 => s_coeff_array(3),
+	i_lp_b2 => s_coeff_array(4),
 	     
 	-- HPF biquad coefficeints
-	i_hp_a0 => s_coeff_tbl(5),
-	i_hp_a1 => s_coeff_tbl(6),
-	i_hp_a2 => s_coeff_tbl(7),
-	i_hp_b1 => s_coeff_tbl(8),
-	i_hp_b2 => s_coeff_tbl(9)
+	i_hp_a0 => s_coeff_array(5),
+	i_hp_a1 => s_coeff_array(6),
+	i_hp_a2 => s_coeff_array(7),
+	i_hp_b1 => s_coeff_array(8),
+	i_hp_b2 => s_coeff_array(9)
 	);
 	
 inst_load_coeffs : entity work.load_coeffs 
@@ -132,7 +134,7 @@ begin
 			state_tbl <= ST_DATA;
 
 		when ST_DATA =>
-			s_coeff_tbl(s_coeff_addr) <= to_integer(signed(s_coeff_data));
+			s_coeff_array(s_coeff_addr) <= signed(s_coeff_data);
 			if s_coeff_addr = c_NUM_REGS-1 then
 				state_tbl <= ST_IDLE;
 			else

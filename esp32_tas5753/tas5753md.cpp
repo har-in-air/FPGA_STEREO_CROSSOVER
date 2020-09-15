@@ -9,7 +9,7 @@ static void i2c_writeBuffer(uint8_t deviceAddress, uint8_t registerAddress, uint
 static uint8_t i2c_readByte(uint8_t deviceAddress, uint8_t registerAddress);
 
 
-static uint16_t volume = 0x0140;// max 0x000, min 0x3FF (mute)
+static uint16_t volume = 0x140;// max 0x000, min 0x3FF (mute)
 
 void tas5753md_mute(void) {
     i2c_writeByte(TAS5753MD_I2C_ADDR_0, TAS5753MD_REG_SYS_CTRL_2, 0x40);

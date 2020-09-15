@@ -122,8 +122,9 @@ int64_t encoderCount = 0;
   
 void setup() {
     Serial.begin(115200);
-    pinMode(FPGA_CS, OUTPUT);
-    digitalWrite(FPGA_CS, HIGH);
+    pinMode(PIN_FPGA_CS, OUTPUT);
+    digitalWrite(PIN_FPGA_CS, HIGH);
+    
 #ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);
     encoder.setCount(0);

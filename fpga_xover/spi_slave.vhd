@@ -20,22 +20,22 @@ entity spi_slave is
 	i_ssn		: in std_logic; --active low slave select
 	i_mosi		: in std_logic; --master out, slave in
 	i_tx_load	: in std_logic; -- tx buffer load
-	i_tx_data	: in std_logic_vector(c_REG_NBITS-1 downto 0);  -- tx data to load in tx buffer
+	i_tx_data	: in std_logic_vector(c_IIR_NBITS-1 downto 0);  -- tx data to load in tx buffer
 
 	o_miso		: out std_logic := 'Z'; --master in, slave out
 	o_rx_cmd_rdy	: out std_logic;  --received command valid
 	o_rx_data_rdy	: out std_logic;  --received data valid
-	o_rx_buf	: out std_logic_vector(c_REG_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
+	o_rx_buf	: out std_logic_vector(c_IIR_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
 	o_frame_active 	: out std_logic
 	); 
 end spi_slave;
 
 architecture logic of spi_slave is
 
-signal s_bit_index	: integer range -1 to c_REG_NBITS+c_CMD_NBITS-1;
+signal s_bit_index	: integer range -1 to c_IIR_NBITS+c_CMD_NBITS-1;
 
-signal s_rx_buf		: std_logic_vector(c_REG_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
-signal s_tx_buf		: std_logic_vector(c_REG_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --transmit buffer
+signal s_rx_buf		: std_logic_vector(c_IIR_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
+signal s_tx_buf		: std_logic_vector(c_IIR_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --transmit buffer
 
 
 signal s_sclk_reg	: std_logic_vector(2 downto 0) := (others => '0');
@@ -50,7 +50,7 @@ signal s_frame_active	: std_logic := '0';
 signal s_mosi		: std_logic := '0';
 
 begin
-  o_rx_cmd_rdy 	<= '1' when s_bit_index = c_REG_NBITS-1 else '0';
+  o_rx_cmd_rdy 	<= '1' when s_bit_index = c_IIR_NBITS-1 else '0';
   o_rx_data_rdy <= '1' when s_bit_index = -1 else '0';
 
   o_rx_buf		<= s_rx_buf;
@@ -81,10 +81,10 @@ end process;
 proc_bitindex : process(i_clk, i_rstn) 
 begin
 	if i_rstn = '0' then
-		s_bit_index <= c_REG_NBITS+c_CMD_NBITS-1;         --reset miso/mosi bit position to msb
+		s_bit_index <= c_IIR_NBITS+c_CMD_NBITS-1;         --reset miso/mosi bit position to msb
 	elsif rising_edge(i_clk) then
 		if s_start_frame = '1' then
-			s_bit_index <= c_REG_NBITS+c_CMD_NBITS-1;         --reset miso/mosi bit position to msb			
+			s_bit_index <= c_IIR_NBITS+c_CMD_NBITS-1;         --reset miso/mosi bit position to msb			
 		end if;
 		if s_sclk_falling = '1'  then            --new bit on miso/mosi
 			s_bit_index <= s_bit_index - 1;            --shift active bit indicator down

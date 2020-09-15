@@ -12,23 +12,23 @@ use work.params.all;
 
 entity dpram_async_clks is
 	port 	(	
-	d_a	: in std_logic_vector(c_REG_NBITS-1 downto 0) := (others => '0');
-	d_b	: in std_logic_vector(c_REG_NBITS-1 downto 0) := (others => '0');
+	d_a	: in std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
+	d_b	: in std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
 	addr_a	: in natural range 0 to c_NUM_REGS-1 := 0;
 	addr_b	: in natural range 0 to c_NUM_REGS-1 := 0;
 	we_a	: in std_logic := '0';
 	we_b	: in std_logic := '0';
 	clk_a	: in std_logic;
 	clk_b	: in std_logic;
-	q_a	: out std_logic_vector(c_REG_NBITS-1 downto 0);
-	q_b	: out std_logic_vector(c_REG_NBITS-1 downto 0)
+	q_a	: out std_logic_vector(c_IIR_NBITS-1 downto 0);
+	q_b	: out std_logic_vector(c_IIR_NBITS-1 downto 0)
 	);	
 end dpram_async_clks;
 
 architecture rtl of dpram_async_clks is
 	
 	-- Build a 2-D array type for the RAM
-	subtype word_t is std_logic_vector(c_REG_NBITS-1 downto 0);
+	subtype word_t is std_logic_vector(c_IIR_NBITS-1 downto 0);
 	type memory_t is array(c_NUM_REGS-1 downto 0) of word_t;
 	
 	-- Declare the RAM
