@@ -91,7 +91,7 @@ char Songs[15][30] = {
   "one_minute_test.mp3"
   };
 
-int SongIndex = 0;
+int SongIndex = 3;
 #endif
 
 

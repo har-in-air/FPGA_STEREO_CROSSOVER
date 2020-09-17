@@ -4,13 +4,23 @@
 a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
+* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded 2nd order Butterworth filters.
+
+* Using Octave to get the 2nd order butterworth filter coefficients
+
+<img src="octave_filter.png" /> 
+
+* Implementation in direct form I to avoid overflow issues, at cost of more delay element memory usage.
+
+<img src="crossover_filter.png" />
+
 * FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loader modules use the on-board
 50MHz system clock.
 * Implemented in VHDL on Altera Cyclone IV EP4CE6E22. I increased the filter coefficient precision from 2.30 to 2.38 as I want to
-be able to use the crossover biquad filters at lower frequencies e.g. 300Hz (sub-woofer crossover). 
-In this case some of the filter coefficients are small enough to benefit from the increased fractional resolution. 
+be able to use the crossover filters at lower Fc/Fs values, e.g. for a sub-woofer crossover at ~300Hz. 
+In this case some of the filter coefficients are small enough to cause filter instability due to fixed-point arithmetic coefficient quantization issues, so require increased fractional resolution.
 
-<img src="xover_3300Hz.png" />
+<img src="xover_3400Hz.png" />
 
 <img src="xover_330Hz.png" />
 
@@ -39,6 +49,12 @@ The ESP32 code currently only reads wav/mp3 files encoded with 16bit data at 44.
 * [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
 * [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
 
+# Useful links
+
+* [IIR filter design](https://www.dsprelated.com/showarticle/1137.php)
+* [Biquad implementation](https://dspguru.com/dsp/howtos/implement-iir-filters/)
+* [Biquad filter formulae](https://www.earlevel.com/main/2011/01/02/biquad-formulas/)
+
 # Prototype
 
 Top side of prototype board 
@@ -47,7 +63,7 @@ Top side of prototype board
 * Rotary encoder for volume control
 * 5V dc-dc converter and 3.3V LDO regulator module
 * Stacked TAS5753MD I2S power amplifiers
-* Testing now with a 19.5V@4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
+* Testing now with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
 DC-DC converter can handle input voltages up to 32V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
@@ -57,9 +73,10 @@ Bottom side of prototype board
 
 <img src="prototype_fpga.jpg" />
 
-When testing crossover at Fc=3300Hz, the sub-woofers are disconnected and the amplifiers drive the mid-woofers and tweeters.
-When testing crossover at Fc=330Hz, I use a passive LC crossover for the
-mid-woofer and tweeters, and the amplifiers drive the sub-woofer and LC crossover.
+When testing the crossover at Fc=3400Hz, the sub-woofers are disconnected. The TAS5753MD amplifiers drive the mid-woofers and tweeters.
+
+When testing the crossover at Fc=330Hz, I use a passive LC crossover circuit to drive the
+mid-woofer and tweeters. The TAS5753MD amplifiers drive the sub-woofers and LC crossover inputs.
 
 <img src="prototype_speakers.jpg" />
 
