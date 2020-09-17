@@ -1,10 +1,12 @@
 # FPGA_STEREO_CROSSOVER
 
+<img src="block_diagram.png" />
+
 * ESP32 reads .wav / .mp3 files on a micro-SD card and generates a I2S digital stereo audio stream (16-bit, 44.1kHz or 48kHz) as
 a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
-* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded 2nd order Butterworth filters.
+* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters.
 
 * Using Octave to get the 2nd order butterworth filter coefficients
 
