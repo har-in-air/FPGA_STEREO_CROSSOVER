@@ -46,25 +46,37 @@ end xover_iir;
 
 architecture Behavioral of xover_iir is
 
-signal iir_state : integer := 0;
+--iir filter state machine
+signal iir_state	: integer := 0;
 
---signals for multiplier
-signal s_mult_in_a 	: signed (c_IIR_NBITS-1 downto 0) 	:= (others=>'0');
-signal s_mult_in_b 	: signed (c_IIR_NBITS-1 downto 0) 	:= (others=>'0');
-signal s_mult_out 	: signed (2*c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--multiplier signals
+signal s_mult_in_a	: signed (c_IIR_NBITS-1 downto 0) 	:= (others=>'0');
+signal s_mult_in_b	: signed (c_IIR_NBITS-1 downto 0) 	:= (others=>'0');
+signal s_mult_out	: signed (2*c_IIR_NBITS-1 downto 0)	:= (others=>'0');
 
---temp regs and delay regs
-signal s_temp 		: signed ((c_IIR_NBITS+8)-1 downto 0)   := (others=>'0');
-signal s_temp_in 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
-signal s_in_z1 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
-signal s_in_z2 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--accumulator
+signal s_accum		: signed ((c_IIR_NBITS+8)-1 downto 0)   := (others=>'0');
 
-signal s_out_z1_hpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
-signal s_out_z2_hpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--registered input
+signal s_iir_in		: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
 
-signal s_out_z1_lpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
-signal s_out_z2_lpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--delay registers
+signal s_in_z1		: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+signal s_in_z2		: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
 
+--signal s_lpfx_z1 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--signal s_lpfx_z2 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+
+--signal s_hpfx_z1 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+--signal s_hpfx_z2 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+
+signal s_out_hpf_z1 : signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+signal s_out_hpf_z2 : signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+
+signal s_out_lpf_z1 : signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+signal s_out_lpf_z2 : signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
+
+--registered outputs
 signal s_iir_hpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
 signal s_iir_lpf 	: signed (c_IIR_NBITS-1 downto 0)	:= (others=>'0');
 
@@ -73,7 +85,7 @@ begin
 o_iir_lpf <= s_iir_lpf;
 o_iir_hpf <= s_iir_hpf;
 
--- multiplier
+--synthesis tool infers built-in multiplier
 process(s_mult_in_a, s_mult_in_b)
 begin
 s_mult_out <= s_mult_in_a * s_mult_in_b;
@@ -83,126 +95,135 @@ end process;
 -- Here we're using 15 clocks for the 2-way lpf and hpf filters.
 -- For a 3-way crossover, double that as we would need another lpf and hpf for the bandpass filter
 
-process (i_mck)
+proc_iir_sm : process (i_mck)
 begin
 if (rising_edge(i_mck)) then    
-
+	case iir_state is
+	when 0 =>
 	--start process when valid sample arrives
-    if (i_sample_valid = '1' and iir_state = 0) then
-        -- load multiplier with samplein * i_hp_a0
+    if (i_sample_valid = '1') then
+        -- load multiplier with i_iir, i_hp_a0
         s_mult_in_a	<= i_iir;
-        s_temp_in	<= i_iir;
+        s_iir_in	<= i_iir;
         s_mult_in_b <= i_hp_a0;
-        iir_state		<= 1;
+        iir_state	<= 1;
         o_busy		<= '1';
+    else
+    	iir_state <= 0;
+    end if;
 
-    elsif (iir_state = 1) then
-        --save result of (samplein * i_hp_a0) to temp and apply right-shift of 30
-        --and load multiplier with in_z1 and i_hp_a1
-        s_temp		<= resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
+    when 1 =>
+        --save resized result of (i_iir * i_hp_a0) to accum
+        --load multiplier with in_z1 and i_hp_a1
+        s_accum		<= resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
         s_mult_in_a	<= s_in_z1;
         s_mult_in_b	<= i_hp_a1;
-        iir_state		<= 2;
+        iir_state	<= 2;
 
-     elsif (iir_state = 2) then
-        --save and sum up result of (in_z1 * i_hp_a1) to temp and apply right-shift of 30
-        --and load multiplier with in_z2 and i_hp_a2
-        s_temp		<= s_temp + resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
+    when 2 =>
+        --accumulate resized result of (in_z1 * i_hp_a1) 
+        --load multiplier with in_z2 and i_hp_a2
+        s_accum		<= s_accum + resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
         s_mult_in_a	<= s_in_z2;
         s_mult_in_b	<= i_hp_a2;
-        iir_state		<= 3;
+        iir_state	<= 3;
 
-         
-      elsif (iir_state = 3) then
-        --save and sum up result of (in_z2 * i_hp_a2) to temp and apply right-shift of 30
-        -- and load multiplier with out_z1_hpf and i_hp_b1
-        s_temp		<= s_temp + resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
-        s_mult_in_a	<= s_out_z1_hpf;
+    when 3 =>
+        --accumulate resized result of (in_z2 * i_hp_a2)
+        --load multiplier with out_z1_hpf and i_hp_b1
+        s_accum		<= s_accum + resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
+        s_mult_in_a	<= s_out_hpf_z1;
         s_mult_in_b	<= i_hp_b1;
-        iir_state		<= 4;
+        iir_state	<= 4;
 
-      elsif (iir_state = 4) then
-        --save and sum up (negative) result of (out_z1_hpf * i_hp_b1) and apply right-shift of 30
-        --and load multiplier with out_z2_hpf and i_hp_b2
-        s_temp		<= s_temp - resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
-        s_mult_in_a	<= s_out_z2_hpf;
+  	when 4 => 
+        --accumulate negative resized result of (out_z1_hpf * i_hp_b1)
+        --load multiplier with out_z2_hpf and i_hp_b2
+        s_accum		<= s_accum - resize(shift_right(s_mult_out, c_IIR_NBITS-2), c_IIR_NBITS+8);
+        s_mult_in_a	<= s_out_hpf_z2;
         s_mult_in_b	<= i_hp_b2;
-        iir_state		<= 5;
-
-      elsif (iir_state = 5) then
-        --save and sum up (negative) result of (out_z2_hpf * i_hp_b2) and apply right-shift of 30
-        s_temp	<= s_temp - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+        iir_state	<= 5;
+	
+    when 5 =>
+        --accumulate negative resized result of (out_z2_hpf * i_hp_b2)
+        s_accum		<= s_accum - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
         iir_state	<= 6;
         
-      elsif (iir_state = 6) then
-        --save result to output_HPF, save all HPF output delay registers
-        s_iir_hpf		<= resize(s_temp, c_IIR_NBITS);
-        s_out_z1_hpf	<= resize(s_temp, c_IIR_NBITS);
-        s_out_z2_hpf	<= s_out_z1_hpf;
-		  iir_state			<= 7;
+    when 6 =>
+        --save resized accumulator to output_HPF
+        --save HPF output delay registers
+        s_iir_hpf		<= resize(s_accum, c_IIR_NBITS);
+        s_out_hpf_z1	<= resize(s_accum, c_IIR_NBITS);
+        s_out_hpf_z2	<= s_out_hpf_z1;
+		iir_state		<= 7;
 
-		elsif (iir_state = 7) then
-        -- load multiplier with samplein * i_lp_a0
+	when 7 =>
+        -- load multiplier with i_iir * i_lp_a0
         s_mult_in_a	<= i_iir;
-        s_temp_in	<= i_iir;
+        s_iir_in	<= i_iir;
         s_mult_in_b	<= i_lp_a0;
-        iir_state		<= 8;
+        iir_state	<= 8;
 
-     elsif (iir_state = 8) then
-        --save result of (samplein* i_lp_a0) to temp and apply right-shift of 30
-        --and load multiplier with in_z1 and i_lp_a1
-        s_temp		<= resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+    when 8 =>
+        --save resized result of (i_iir * i_lp_a0) in accum
+        --load multiplier with in_z1 and i_lp_a1
+        s_accum		<= resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
         s_mult_in_a	<= s_in_z1;
         s_mult_in_b	<= i_lp_a1;
-        iir_state		<= 9;
+        iir_state	<= 9;
 
-     elsif (iir_state = 9) then
-        --save and sum up result of (in_z1 * i_lp_a1) to temp and apply right-shift of 30
-        --and load multiplier with in_z2 and i_lp_a2
-        s_temp		<= s_temp + resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+    when 9 =>
+        --accumulate resized result of (in_z1 * i_lp_a1)
+        --load multiplier with in_z2 and i_lp_a2
+        s_accum		<= s_accum + resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
         s_mult_in_a	<= s_in_z2;
         s_mult_in_b	<= i_lp_a2;
-        iir_state		<= 10;
+        iir_state	<= 10;
 
-         
-      elsif (iir_state = 10) then
-        --save and sum up result of (in_z2 * i_lp_a2) to temp and apply right-shift of 30
-        -- and load multiplier with out_z1_lpf and i_lp_b1
-        s_temp		<= s_temp + resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
-        s_mult_in_a	<= s_out_z1_lpf;
+    when 10 =>
+        --accumulate resized result of (in_z2 * i_lp_a2)
+        --load multiplier with out_z1_lpf and i_lp_b1
+        s_accum		<= s_accum + resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+        s_mult_in_a	<= s_out_lpf_z1;
         s_mult_in_b	<= i_lp_b1;
-        iir_state		<= 11;
+        iir_state	<= 11;
 
-      elsif (iir_state = 11) then
-        --save and sum up (negative) result of (out_z1_lpf * i_lp_b1) and apply right-shift of 30
-        --and load multiplier with out_z2_lpf and i_lp_b2
-        s_temp		<= s_temp - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
-        s_mult_in_a	<= s_out_z2_lpf;
+    when 11 =>
+        --accumulate negative resized result of (out_z1_lpf * i_lp_b1)
+        --load multiplier with out_z2_lpf and i_lp_b2
+        s_accum		<= s_accum - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+        s_mult_in_a	<= s_out_lpf_z2;
         s_mult_in_b	<= i_lp_b2;
-        iir_state		<= 12;
+        iir_state	<= 12;
 
-      elsif (iir_state = 12) then
-        --save and sum up (negative) result of (out_z2_lpf * i_lp_b2) and apply right-shift of 30
-        s_temp		<= s_temp - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
-        iir_state		<= 13;
+    when 12 =>
+        --accumulate negative result of (out_z2_lpf * i_lp_b2)
+        s_accum		<= s_accum - resize(shift_right(s_mult_out,c_IIR_NBITS-2), c_IIR_NBITS+8);
+        iir_state	<= 13;
         
-      elsif (iir_state = 13) then
-        --save result to output_LPF, save all LPF output delay registers
-		  -- save input delay registers
-        s_iir_lpf		<= resize(s_temp, c_IIR_NBITS);
-        s_out_z1_lpf	<= resize(s_temp, c_IIR_NBITS);
-        s_out_z2_lpf	<= s_out_z1_lpf;
+    when 13 =>
+        --save resized accumulator to output_LPF
+        --save LPF output delay registers
+		--save input delay registers
+        s_iir_lpf		<= resize(s_accum, c_IIR_NBITS);
+        s_out_lpf_z1	<= resize(s_accum, c_IIR_NBITS);
+        s_out_lpf_z2	<= s_out_lpf_z1;
         s_in_z2			<= s_in_z1;
-        s_in_z1			<= s_temp_in;
+        s_in_z1			<= s_iir_in;
         o_sample_valid	<= '1';
-        iir_state			<= 14;
+        iir_state		<= 14;
         
-      elsif (iir_state = 14) then
+    when 14 =>
+      	--reset output valid pulse and busy flag
+      	--return to idle
         o_sample_valid	<= '0';
-        iir_state			<= 0;
         o_busy			<= '0';
-      end if;      
+        iir_state		<= 0;
+    
+    when others =>
+    	iir_state <= 0;     
 
+	end case;
 end if;
 end process;
 end Behavioral;
