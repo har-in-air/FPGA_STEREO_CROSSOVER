@@ -1,9 +1,12 @@
 ----------------------------------------------------------------------------------
 -- Engineer: github.com/YetAnotherElectronicsChannel
--- modified : github.com/har-in-air for 2-way active xover, using 40bit (2.38)
+-- modified : github.com/har-in-air for 2-way active crossover, using 40bit (2.38)
 -- fixed point arithmetic as opposed to 32bit (2.30) as I want the additional
--- fractional resolution for low frequency crossovers where some of the coefficients
--- can be small values.
+-- fractional resolution for low frequency crossovers eg 300Hz where some of the coefficients
+-- are small enough to require extended fractional resolution to avoid numerical instability. 
+-- Also extended the single biquad IIR filter to separate low-pass and 
+-- high-pass filters, each configured as 4th order Linkwitz-Riley. Each LR4 filter
+-- is implemented as cascaded identical 2nd order Butterworth filters
 ----------------------------------------------------------------------------------
 
 
