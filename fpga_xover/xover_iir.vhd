@@ -96,8 +96,8 @@ begin
 s_mult_out <= s_mult_in_a * s_mult_in_b;
 end process;
 
-
--- With mck = 256 * fs, we have 128 clocks to work with before the next (L/R) sample arrives.
+-- A new data input sample (L&R) arrives every 1/fs seconds. 
+-- With mck = 256 * fs, we have 256 clocks to work with before the next sample arrives.
 -- We're using 29 clocks for the crossover lpf and hpf filters. Each filter is
 -- implemented as a cascade of 2nd order butterworth filters. 
 -- The result is equivalent to a 4th order Linkwitz-Riley filter.
