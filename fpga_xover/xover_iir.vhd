@@ -164,7 +164,7 @@ if (rising_edge(i_mck)) then
         --save resized accumulator to s_hpfx (first butterworth filter output)
         --save s_hpfx delay registers
         s_hpfx		<= resize(s_accum, c_IIR_NBITS);
-        s_hpfx_z1	<= s_hpfx;
+        s_hpfx_z1	<= resize(s_accum, c_IIR_NBITS);
         s_hpfx_z2	<= s_hpfx_z1;
 		iir_state	<= 7;
 
@@ -217,7 +217,7 @@ if (rising_edge(i_mck)) then
         --save resized accumulator to s_iir_hpf output
         --save s_iir_hpf delay registers
         s_iir_hpf		<= resize(s_accum, c_IIR_NBITS);
-        s_iir_hpf_z1	<= s_iir_hpf;
+        s_iir_hpf_z1	<= resize(s_accum, c_IIR_NBITS);
         s_iir_hpf_z2	<= s_iir_hpf_z1;
 		iir_state		<= 14;
 
@@ -270,7 +270,7 @@ if (rising_edge(i_mck)) then
         --save resized accumulator to s_lpfx
         --save lpfx delay registers
         s_lpfx		<= resize(s_accum, c_IIR_NBITS);
-        s_lpfx_z1	<= s_lpfx;
+        s_lpfx_z1	<= resize(s_accum, c_IIR_NBITS);
         s_lpfx_z2	<= s_lpfx_z1;
         iir_state	<= 21;
 
@@ -322,7 +322,7 @@ if (rising_edge(i_mck)) then
         --save resized accumulator to s_iir_lpf
         --save s_iir_lpf delay registers
         s_iir_lpf		<= resize(s_accum, c_IIR_NBITS);
-        s_iir_lpf_z1	<= s_iir_lpf;
+        s_iir_lpf_z1	<= resize(s_accum, c_IIR_NBITS);
         s_iir_lpf_z2	<= s_iir_lpf_z1;
 		--save input delay registers
         s_in_z2			<= s_in_z1;
