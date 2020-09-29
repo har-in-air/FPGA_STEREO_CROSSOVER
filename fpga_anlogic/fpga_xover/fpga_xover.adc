@@ -1,0 +1,14 @@
+set_pin_assignment	{ i_bck }	{ LOCATION = C15; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_clk_24Mhz }	{ LOCATION = K14; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_mck }	{ LOCATION = B10; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_mosi }	{ LOCATION = M12; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_rstn }	{ LOCATION = K16; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_sclk }	{ LOCATION = N12; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_sdi }	{ LOCATION = F16; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_ssn }	{ LOCATION = P12; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ i_ws }	{ LOCATION = E16; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ o_miso }	{ LOCATION = R16; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ o_sdo_l }	{ LOCATION = C16; IOSTANDARD = LVTTL33; }
+set_pin_assignment	{ o_sdo_r }	{ LOCATION = B16; IOSTANDARD = LVTTL33; }
+
+
