@@ -39,7 +39,7 @@ architecture rtl of top is
 signal s_coeff_addr 	: natural range 0 to c_NUM_REGS-1 := 0;
 signal s_coeff_data 	: std_logic_vector(c_IIR_NBITS-1 downto 0);
 signal s_coeff_rdy  	: std_logic := '0';
-signal s_coeff_rdy_reg : std_logic_vector(1 downto 0) := (others => '0'); 
+signal s_coeff_rdy_sync : std_logic_vector(1 downto 0) := (others => '0'); 
 
 --type coeff_t is signed(c_IIR_NBITS-1 downto 0);
 type coeff_array_t is array(0 to c_NUM_REGS-1) of signed(c_IIR_NBITS-1 downto 0);
@@ -99,32 +99,31 @@ port map (
 	i_clk_sys		=> i_clk_50Mhz,
 
 	-- external spi interface
-	i_ssn			=> i_ssn,
+	i_ssn				=> i_ssn,
 	i_sclk			=> i_sclk,
 	i_mosi			=> i_mosi,
 	o_miso			=> o_miso,
 
 	-- internal audiosystem interface 
-	i_clk_audio		=> i_mck,
 	i_reg_addr		=> s_coeff_addr,
 	o_reg_data		=> s_coeff_data,
 	o_reg_rdy		=> s_coeff_rdy
 	);
 
-proc_sync_coeff_rdy : process(i_mck) is
+proc_sync_coeff_rdy : process(i_clk_50Mhz) is
 begin
-	if rising_edge(i_mck) then      
-		s_coeff_rdy_reg <= s_coeff_rdy_reg(0) & s_coeff_rdy;
+	if rising_edge(i_clk_50Mhz) then      
+		s_coeff_rdy_sync <= s_coeff_rdy_sync(0) & s_coeff_rdy;
 	end if;
 end process;
 	
-proc_load_coeffs : process(i_mck) is
+proc_load_coeffs : process(i_clk_50Mhz) is
 begin
-	if rising_edge(i_mck) then      
+	if rising_edge(i_clk_50Mhz) then      
 		case state_tbl is
       	when ST_IDLE =>
 			s_coeff_addr <= 0; 
-			if s_coeff_rdy_reg(1) = '1' then
+			if s_coeff_rdy_sync = b"01" then
 				state_tbl <= ST_ADDR;
 			else
 				state_tbl <= ST_IDLE;
