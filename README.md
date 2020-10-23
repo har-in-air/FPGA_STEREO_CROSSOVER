@@ -51,12 +51,14 @@ The ESP32 code currently only reads wav/mp3 files encoded with 16bit data at 44.
 
 * [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
 * [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
+* [Cascaded Biquad filter coefficient calculation](https://github.com/igorinov/biquad)
 
 # Useful links
 
 * [IIR filter design](https://www.dsprelated.com/showarticle/1137.php)
 * [Biquad implementation](https://dspguru.com/dsp/howtos/implement-iir-filters/)
 * [Biquad filter formulae](https://www.earlevel.com/main/2011/01/02/biquad-formulas/)
+* [Cascaded biquad filters](https://igorinov.com/dsp/biquad/)
 
 # Prototype
 
@@ -66,8 +68,8 @@ Top side of prototype board
 * Rotary encoder for volume control
 * 5V dc-dc converter and 3.3V LDO regulator module
 * Stacked TAS5753MD I2S power amplifiers
-* Testing now with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
-DC-DC converter can handle input voltages up to 32V.
+* Tested with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
+DC-DC converter can handle input voltages up to 24V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
@@ -78,7 +80,7 @@ Bottom side of prototype board
 
 When testing the crossover at Fc=3400Hz, the sub-woofers are disconnected. The TAS5753MD amplifiers drive the mid-woofers and tweeters.
 
-When testing the crossover at Fc=330Hz, I use a passive LC crossover circuit to drive the
+When testing the crossover at Fc=340Hz, I use a passive LC crossover circuit to drive the
 mid-woofer and tweeters. The TAS5753MD amplifiers drive the sub-woofers and LC crossover inputs.
 
 <img src="prototype_speakers.jpg" />
