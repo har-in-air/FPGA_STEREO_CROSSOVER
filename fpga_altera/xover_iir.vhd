@@ -19,11 +19,11 @@ entity xover_iir is
 port (
     i_mck		: in std_logic := '0';
     
-    i_iir		: in signed (31 downto 0) := (others=>'0');
+    i_iir		: in signed (c_DATA_NBITS-1 downto 0) := (others=>'0');
     i_sample_valid  : in std_logic := '0';
     
-    o_iir_lpf	: out signed(31 downto 0) := (others=>'0');
-    o_iir_hpf	: out signed(31 downto 0) := (others=>'0');
+    o_iir_lpf	: out signed(c_DATA_NBITS-1 downto 0) := (others=>'0');
+    o_iir_hpf	: out signed(c_DATA_NBITS-1 downto 0) := (others=>'0');
     o_sample_valid : out std_logic := '0';
     
     o_busy		: out std_logic := '0';
@@ -63,50 +63,50 @@ architecture Behavioral of xover_iir is
 signal iir_state	: integer := 0;
 
 --multiplier signals
-signal s_mult_in_a	: signed (31 downto 0) 	:= (others=>'0'); -- data sample
+signal s_mult_in_a	: signed (c_DATA_NBITS-1 downto 0) 	:= (others=>'0'); -- data sample
 signal s_mult_in_b	: signed (c_COEFF_NBITS-1 downto 0) 	:= (others=>'0'); -- coefficient
 signal s_mult_out	: signed (c_MULT_NBITS-1 downto 0)	:= (others=>'0'); -- multiplication result
 
 --accumulator
 signal s_mult_out_resize	: signed (c_ACCUM_NBITS-1 downto 0)   := (others=>'0');
 signal s_accum				: signed (c_ACCUM_NBITS-1 downto 0)   := (others=>'0');
-signal s_accum_resize 		: signed (31 downto 0); 
+signal s_accum_resize 		: signed (c_DATA_NBITS-1 downto 0); 
 
 --Fourth order filter implemented as cascaded 2nd-order Butterworth filters
 
 --registered input and delay registers
-signal s_iir_in	    : signed (31 downto 0)	:= (others=>'0');
+signal s_iir_in	    : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
-signal s_in_z1		: signed (31 downto 0)	:= (others=>'0');
-signal s_in_z2		: signed (31 downto 0)	:= (others=>'0');
+signal s_in_z1		: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_in_z2		: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- lpf biquad0 filter outputs and delayed output registers
-signal s_lpfx       : signed (31 downto 0)	:= (others=>'0');
-signal s_lpfxo_z1 	: signed (31 downto 0)	:= (others=>'0');
-signal s_lpfxo_z2 	: signed (31 downto 0)	:= (others=>'0');
+signal s_lpfx       : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_lpfxo_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_lpfxo_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- lpf biquad1 filter delayed inputs
-signal s_lpfxi_z1 	: signed (31 downto 0)	:= (others=>'0');
-signal s_lpfxi_z2 	: signed (31 downto 0)	:= (others=>'0');
+signal s_lpfxi_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_lpfxi_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- hpf biquad0 filter outputs and delay registers
-signal s_hpfx       : signed (31 downto 0)	:= (others=>'0');
-signal s_hpfxo_z1 	: signed (31 downto 0)	:= (others=>'0');
-signal s_hpfxo_z2 	: signed (31 downto 0)	:= (others=>'0');
+signal s_hpfx       : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_hpfxo_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_hpfxo_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- hpf biquad1 filter delayed inputs
-signal s_hpfxi_z1 	: signed (31 downto 0)	:= (others=>'0');
-signal s_hpfxi_z2 	: signed (31 downto 0)	:= (others=>'0');
+signal s_hpfxi_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_hpfxi_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- final lpf outputs and delay registers
-signal s_iir_lpf    : signed (31 downto 0)	:= (others=>'0');
-signal s_iir_lpf_z1	: signed (31 downto 0)	:= (others=>'0');
-signal s_iir_lpf_z2	: signed (31 downto 0)	:= (others=>'0');
+signal s_iir_lpf    : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_iir_lpf_z1	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_iir_lpf_z2	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- final hpf outputs and delay registers
-signal s_iir_hpf    : signed (31 downto 0)	:= (others=>'0');
-signal s_iir_hpf_z1	: signed (31 downto 0)	:= (others=>'0');
-signal s_iir_hpf_z2	: signed (31 downto 0)	:= (others=>'0');
+signal s_iir_hpf    : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_iir_hpf_z1	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_iir_hpf_z2	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 
 begin
@@ -114,7 +114,7 @@ begin
 o_iir_lpf <= s_iir_lpf;
 o_iir_hpf <= s_iir_hpf;
 
-s_accum_resize      <= resize(shift_right(s_accum, c_COEFF_FBITS), 32);
+s_accum_resize      <= resize(shift_right(s_accum, c_COEFF_FBITS), c_DATA_NBITS);
 s_mult_out_resize   <= resize(s_mult_out, c_ACCUM_NBITS);
 
 --synthesis tool infers built-in multiplier

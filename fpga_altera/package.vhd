@@ -5,10 +5,11 @@ use ieee.numeric_std.all;
 package PARAMS is
   constant c_CMD_NBITS		: integer := 8;
   constant c_COEFF_NBITS	: integer := 40;  
-  constant c_COEFF_FBITS    : integer := 36;
-  constant c_NCOEFFS		: integer := 20;
-  constant c_MULT_NBITS		: integer := 72;
-  constant c_ACCUM_NBITS	: integer := 80;
+  constant c_COEFF_FBITS	: integer := 36;
+  constant c_NCOEFFS			: integer := 20;
+  constant c_DATA_NBITS		: integer := 24;
+  constant c_MULT_NBITS		: integer := 64;
+  constant c_ACCUM_NBITS	: integer := 72;
 end package PARAMS;
 
 package body PARAMS is
