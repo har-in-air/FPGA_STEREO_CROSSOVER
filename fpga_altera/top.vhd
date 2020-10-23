@@ -61,22 +61,6 @@ port map (
 	i_sdi	=> i_sdi, -- input stereo l+r   
 	o_sdo_l	=> o_sdo_l, -- output left lpf + hpf
 	o_sdo_r	=> o_sdo_r, -- output right lpf + hpf
-
--- s=44.1khz, fc=340hz, q= 0.707
-	
---	-- LPF biquad coefficients
---	i_lp0_b0 =>  40D"155887665",
---	i_lp0_b1 => 40D"311775331",
---	i_lp0_b2 => 40D"155887665",
---	i_lp0_a1 => -40D"530929086023",
---	i_lp0_a2 => 40D"256674729741",
---	     
---	-- HPF biquad coefficients
---	i_hp0_b0 => 40D"265620430677",
---	i_hp0_b1 => -40D"531240861354",
---	i_hp0_b2 => 40D"265620430677",
---	i_hp0_a1 => -40D"530929086023",
---	i_hp0_a2 => 40D"256674729741",
 	
 	-- LPF0 biquad coefficients
 	i_lp0_b0 => s_coeff_array(0),

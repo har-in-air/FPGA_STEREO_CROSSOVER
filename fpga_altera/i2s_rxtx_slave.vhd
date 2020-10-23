@@ -50,15 +50,11 @@ signal s_shift32_out_r_hp  : std_logic_vector(31 downto 0) := (others => '0');
 
 -- synchronization registers
 
---signal s_bckd : std_logic := '0';
---signal s_bckdd : std_logic := '0';
 signal s_bck_sync : std_logic_vector(1 downto 0) := (others => '0');
 
 signal s_bck_posedge : std_logic := '0';
 signal s_bck_negedge : std_logic := '0';
 
---signal s_wsd	: std_logic := '0';
---signal s_wsdd	: std_logic := '0';
 signal s_ws_sync : std_logic_vector(1 downto 0) := (others => '0');
 
 signal s_sdid	: std_logic := '0';
@@ -89,18 +85,10 @@ o_r24  <= signed(s_or24);
 proc_edge_detect : process(i_mck, i_rstn)
 begin
 	if i_rstn = '0' then
-		--s_bckd   <= '0';
-		--s_bckdd  <= '0';
-		--s_wsd    <= '0';
-		--s_wsdd   <= '0';
 		s_bck_sync <= (others => '0');
 		s_ws_sync <= (others => '0');
 		s_sdid    <= '0';
 	elsif falling_edge(i_mck) then
-		--s_bckd   <= i_bck;
-		--s_bckdd  <= s_bckd;
-		--s_wsd    <= i_ws;
-		--s_wsdd   <= s_wsd;
 		s_bck_sync <= s_bck_sync(0) & i_bck;
 		s_ws_sync <= s_ws_sync(0) & i_ws;
 		s_sdid	 <= i_sdi;
