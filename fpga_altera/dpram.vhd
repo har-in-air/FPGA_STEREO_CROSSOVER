@@ -12,23 +12,23 @@ use work.params.all;
 
 entity dpram is
 	port 	(	
-	d_a	: in std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
-	d_b	: in std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
-	addr_a	: in natural range 0 to c_NUM_REGS-1 := 0;
-	addr_b	: in natural range 0 to c_NUM_REGS-1 := 0;
+	d_a	: in std_logic_vector(c_COEFF_NBITS-1 downto 0) := (others => '0');
+	d_b	: in std_logic_vector(c_COEFF_NBITS-1 downto 0) := (others => '0');
+	addr_a	: in natural range 0 to c_NCOEFFS-1 := 0;
+	addr_b	: in natural range 0 to c_NCOEFFS-1 := 0;
 	we_a	: in std_logic := '0';
 	we_b	: in std_logic := '0';
 	clk	: in std_logic;
-	q_a	: out std_logic_vector(c_IIR_NBITS-1 downto 0);
-	q_b	: out std_logic_vector(c_IIR_NBITS-1 downto 0)
+	q_a	: out std_logic_vector(c_COEFF_NBITS-1 downto 0);
+	q_b	: out std_logic_vector(c_COEFF_NBITS-1 downto 0)
 	);	
 end dpram;
 
 architecture rtl of dpram is
 	
 	-- Build a 2-D array type for the RAM
-	subtype word_t is std_logic_vector(c_IIR_NBITS-1 downto 0);
-	type memory_t is array(c_NUM_REGS-1 downto 0) of word_t;
+	subtype word_t is std_logic_vector(c_COEFF_NBITS-1 downto 0);
+	type memory_t is array(c_NCOEFFS-1 downto 0) of word_t;
 	
 	-- Declare the RAM
 	shared variable ram : memory_t;

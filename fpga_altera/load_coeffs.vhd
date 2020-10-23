@@ -23,10 +23,10 @@ port (
 	o_miso : out std_logic := '0';
 
 -- internal system interface 
-	i_reg_addr : in natural range 0 to c_NUM_REGS-1 := 0;
-	o_reg_data : out std_logic_vector(c_IIR_NBITS-1 downto 0);
+	i_coeff_addr : in natural range 0 to c_NCOEFFS-1 := 0;
+	o_coeff_data : out std_logic_vector(c_COEFF_NBITS-1 downto 0);
 
-	o_reg_rdy : out std_logic
+	o_coeffs_rdy : out std_logic
 	);
 end entity;
 
@@ -35,22 +35,22 @@ architecture rtl of load_coeffs is
 
 -- wires to spi_slave
 signal s_tx_load		: std_logic := '0';
-signal s_tx_data 		: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others => '0');
-signal s_rx_buf  		: std_logic_vector(c_IIR_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
+signal s_tx_data 		: std_logic_vector(c_COEFF_NBITS-1 downto 0) := (others => '0');
+signal s_rx_buf  		: std_logic_vector(c_COEFF_NBITS+c_CMD_NBITS-1 downto 0) := (others => '0');  --receive buffer
 signal s_rx_data_rdy	: std_logic := '0';
 signal s_rx_cmd_rdy	: std_logic := '0';
 
-signal s_command		: std_logic_vector(3 downto 0) := (others => '0');
+signal s_command		: std_logic_vector(2 downto 0) := (others => '0');
 
 -- dpram
 -- a side, spi read/write interface
-signal s_dpram_addr_a	: natural range 0 to c_NUM_REGS-1 := 0;
-signal s_dpram_data_a	: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
-signal s_dpram_q_a		: std_logic_vector(c_IIR_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_addr_a	: natural range 0 to c_NCOEFFS-1 := 0;
+signal s_dpram_data_a	: std_logic_vector(c_COEFF_NBITS-1 downto 0) := (others=>'0');
+signal s_dpram_q_a		: std_logic_vector(c_COEFF_NBITS-1 downto 0) := (others=>'0');
 signal s_dpram_we_a		: std_logic := '0';
 
 -- b side, coefficient loader read-only interface
--- addr_b => i_reg_addr, data_b => 0, we_b => 0
+-- addr_b => i_coeff_addr, data_b => 0, we_b => 0
 
 signal s_frame_active : std_logic := '0';  
 
@@ -62,10 +62,10 @@ begin
 	
 inst_spi_slave : ENTITY work.spi_slave
 PORT map(
-	i_clk			=> i_clk_sys,
+	i_clk       => i_clk_sys,
 	i_rstn		=> i_rstn,
 	i_sclk    	=> i_sclk,
-	i_ssn			=> i_ssn,
+	i_ssn       => i_ssn,
 	i_mosi		=> i_mosi,
 	i_tx_load	=> s_tx_load,
 	i_tx_data	=> s_tx_data,
@@ -73,7 +73,7 @@ PORT map(
 	o_miso			=> o_miso,
 	o_rx_cmd_rdy	=> s_rx_cmd_rdy,
 	o_rx_data_rdy	=> s_rx_data_rdy,
-	o_rx_buf			=> s_rx_buf,
+	o_rx_buf        => s_rx_buf,
 	o_frame_active	=> s_frame_active
 	);
     
@@ -82,26 +82,26 @@ port map(
 	clk		=> i_clk_sys,
 	d_a		=> s_dpram_data_a,
 	addr_a	=> s_dpram_addr_a,
-	we_a		=> s_dpram_we_a,
+	we_a    => s_dpram_we_a,
 	q_a		=> s_dpram_q_a,
 	d_b		=> X"0000000000", --s_dpram_data_b, 
-	addr_b	=> i_reg_addr, --s_dpram_addr_b,
-	we_b		=> '0', --s_dpram_we_b,
-	q_b		=> o_reg_data --s_dpram_q_b
+	addr_b	=> i_coeff_addr, --s_dpram_addr_b,
+	we_b    => '0', --s_dpram_we_b,
+	q_b		=> o_coeff_data --s_dpram_q_b
 	);
 
 	
 -- state machine for processing spi master commands
--- top byte (7:4) = command. 1 = write register, 2 = read register, 3 = notify audiosystem of loaded coefficients
--- top byte (3:0) = dpram register index 0 - 15
--- lower 4 bytes = 32-bit signed 2's complement coefficient data in 2.30 format
+-- top byte (7:5) = command. 1 = write register, 2 = read register, 3 = notify audiosystem of loaded coefficients
+-- top byte (4:0) = dpram register index
+-- lower 5 bytes = 40-bit signed 2's complement coefficient data in 4.36 format
 
 proc_spi_transaction : process (i_clk_sys, i_rstn)
 begin 
 if i_rstn = '0' then
 	state_top <= IDLE;
 	s_dpram_we_a <= '0';
-	o_reg_rdy <= '0';
+	o_coeffs_rdy <= '0';
 	s_command <= (others => '0');
 	s_tx_load <= '0';
 	s_tx_data <= (others => '0');
@@ -109,8 +109,8 @@ elsif rising_edge(i_clk_sys) then
 	case state_top is
 	when IDLE =>
 		if s_rx_cmd_rdy = '1' then
-			s_command <= s_rx_buf(c_IIR_NBITS+7 downto c_IIR_NBITS+4);
-			s_dpram_addr_a <= to_integer(unsigned(s_rx_buf(c_IIR_NBITS+3 downto c_IIR_NBITS)));
+			s_command <= s_rx_buf(c_COEFF_NBITS+7 downto c_COEFF_NBITS+5);
+			s_dpram_addr_a <= to_integer(unsigned(s_rx_buf(c_COEFF_NBITS+4 downto c_COEFF_NBITS)));
 			state_top <=  CMD;
 		else 
 			state_top <= IDLE;
@@ -118,13 +118,13 @@ elsif rising_edge(i_clk_sys) then
 	
 				
 	when CMD =>
-		if s_command = X"1" then   -- command : write dpram register		
+		if s_command = b"001" then   -- command : write dpram register		
    			state_top <= WT_WR_DATA;
-		elsif s_command = X"2" then   -- command : read dpram register
+		elsif s_command = b"010" then   -- command : read dpram register
 			s_dpram_we_a <= '0';
 	  		state_top <= RD_DATA; -- read data from dpram register
-		elsif s_command = X"3" then -- command : 'registers loaded', notify audiosystem
-			o_reg_rdy <= '1';
+		elsif s_command = b"011" then -- command : 'coefficients loaded', notify audiosystem
+			o_coeffs_rdy <= '1';
 	  		state_top <= WT_CS;
 		else
    			state_top <= IDLE;
@@ -132,7 +132,7 @@ elsif rising_edge(i_clk_sys) then
 	  		
 	when WT_WR_DATA => -- on reception of data_rdy synchronized flag
 		if s_rx_data_rdy = '1' then 		
-	  		s_dpram_data_a <= s_rx_buf(c_IIR_NBITS-1 downto 0);
+	  		s_dpram_data_a <= s_rx_buf(c_COEFF_NBITS-1 downto 0);
 	  		state_top <= WR_DATA; 
 		else 
 			state_top <= WT_WR_DATA;
@@ -154,7 +154,7 @@ elsif rising_edge(i_clk_sys) then
 	when WT_CS => -- reset pulses and wait until spi bus is idle
 		s_dpram_we_a <= '0';  -- reset write pulse 
       s_tx_load <= '0'; -- reset load pulse     
-		o_reg_rdy <= '0'; -- reset system read ready pulse	   
+		o_coeffs_rdy <= '0'; -- reset system read ready pulse	   
 		if s_frame_active = '0' then
 			state_top <= IDLE;
 		else

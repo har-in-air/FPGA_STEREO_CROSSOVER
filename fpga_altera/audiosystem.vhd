@@ -21,17 +21,29 @@ port (
 	o_sdo_l 	: out std_logic;
 	o_sdo_r 	: out std_logic;
 
-	i_lp_a0 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_lp_a1 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_lp_a2 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_lp_b1 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_lp_b2 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');	 
-
-	i_hp_a0 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_hp_a1 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_hp_a2 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_hp_b1 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0');
-	i_hp_b2 	: signed (c_IIR_NBITS-1 downto 0) := (others=>'0')
+    i_lp0_b0	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp0_b1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp0_b2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp0_a1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp0_a2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    
+    i_lp1_b0	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp1_b1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp1_b2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp1_a1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_lp1_a2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    
+    i_hp0_b0	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp0_b1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp0_b2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp0_a1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp0_a2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    
+    i_hp1_b0	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp1_b1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp1_b2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp1_a1	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0');
+    i_hp1_a2	: signed (c_COEFF_NBITS-1 downto 0) := (others=>'0')
 	);
 	
 end audiosystem;
@@ -122,18 +134,30 @@ inst_xover_iir_left : entity work.xover_iir
     o_busy				=> open,
 
 	 -- LPF coefficients
-    i_lp_a0				=> i_lp_a0,
-    i_lp_a1				=> i_lp_a1,
-    i_lp_a2				=> i_lp_a2,
-    i_lp_b1				=> i_lp_b1,
-    i_lp_b2				=> i_lp_b2,
+    i_lp0_b0				=> i_lp0_b0,
+    i_lp0_b1				=> i_lp0_b1,
+    i_lp0_b2				=> i_lp0_b2,
+    i_lp0_a1				=> i_lp0_a1,
+    i_lp0_a2				=> i_lp0_a2,
+
+    i_lp1_b0				=> i_lp1_b0,
+    i_lp1_b1				=> i_lp1_b1,
+    i_lp1_b2				=> i_lp1_b2,
+    i_lp1_a1				=> i_lp1_a1,
+    i_lp1_a2				=> i_lp1_a2,
 
 	 -- HPF coefficients
-    i_hp_a0				=> i_hp_a0,
-    i_hp_a1				=> i_hp_a1,
-    i_hp_a2				=> i_hp_a2,
-    i_hp_b1				=> i_hp_b1,
-    i_hp_b2				=> i_hp_b2    
+    i_hp0_b0				=> i_hp0_b0,
+    i_hp0_b1				=> i_hp0_b1,
+    i_hp0_b2				=> i_hp0_b2,
+    i_hp0_a1				=> i_hp0_a1,
+    i_hp0_a2				=> i_hp0_a2,    
+
+    i_hp1_b0				=> i_hp1_b0,
+    i_hp1_b1				=> i_hp1_b1,
+    i_hp1_b2				=> i_hp1_b2,
+    i_hp1_a1				=> i_hp1_a1,
+    i_hp1_a2				=> i_hp1_a2    
     );
 
 
@@ -152,18 +176,30 @@ inst_xover_iir_right : entity work.xover_iir
     o_busy				=> open,
 	
 	 -- LPF coefficients
-    i_lp_a0				=> i_lp_a0,
-    i_lp_a1				=> i_lp_a1,
-    i_lp_a2				=> i_lp_a2,
-    i_lp_b1				=> i_lp_b1,
-    i_lp_b2				=> i_lp_b2,
-    
+    i_lp0_b0				=> i_lp0_b0,
+    i_lp0_b1				=> i_lp0_b1,
+    i_lp0_b2				=> i_lp0_b2,
+    i_lp0_a1				=> i_lp0_a1,
+    i_lp0_a2				=> i_lp0_a2,
+
+    i_lp1_b0				=> i_lp1_b0,
+    i_lp1_b1				=> i_lp1_b1,
+    i_lp1_b2				=> i_lp1_b2,
+    i_lp1_a1				=> i_lp1_a1,
+    i_lp1_a2				=> i_lp1_a2,
+
 	 -- HPF coefficients
-    i_hp_a0				=> i_hp_a0,
-    i_hp_a1				=> i_hp_a1,
-    i_hp_a2				=> i_hp_a2,
-    i_hp_b1				=> i_hp_b1,
-    i_hp_b2				=> i_hp_b2
+    i_hp0_b0				=> i_hp0_b0,
+    i_hp0_b1				=> i_hp0_b1,
+    i_hp0_b2				=> i_hp0_b2,
+    i_hp0_a1				=> i_hp0_a1,
+    i_hp0_a2				=> i_hp0_a2,    
+
+    i_hp1_b0				=> i_hp1_b0,
+    i_hp1_b1				=> i_hp1_b1,
+    i_hp1_b2				=> i_hp1_b2,
+    i_hp1_a1				=> i_hp1_a1,
+    i_hp1_a2				=> i_hp1_a2  
     );
     
 end rtl;

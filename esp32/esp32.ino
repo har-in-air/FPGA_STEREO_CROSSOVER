@@ -63,6 +63,8 @@
  * one_minute.mp3
  * kyla.mp3
  * hnk002.mp3
+ * ragi_bali.mp3
+ * el_buho_eglo.mp3
  */
 
 #include "SD.h"
@@ -73,7 +75,7 @@
 #define SPI_MISO      19
 #define SPI_SCK       18
 
-char Songs[15][30] = {
+char Songs[20][30] = {
   "rejoicing.wav",
   "volcano.wav",
   "fanfare.wav",
@@ -81,6 +83,8 @@ char Songs[15][30] = {
   "baby_elephant.wav",
   "muratteri.wav",
   "equinox_48khz.wav",
+  "el_buho_eglo.mp3",
+  "ragi_bali.mp3",
   "hnk002.mp3",
   "soulwax_binary.mp3", 
   "srv_tin_pan_alley.mp3", 
@@ -91,7 +95,7 @@ char Songs[15][30] = {
   "one_minute_test.mp3"
   };
 
-int SongIndex = 8;
+int SongIndex = 7;
 #endif
 
 
@@ -131,6 +135,7 @@ void setup() {
     
     // failure configuring TAS5753MD, loop forever
     if (tas5753md_config() == 0) {
+      Serial.printf("Failure configuring TAS5753MD, exit setup and loop ...\r\n");
       while (1) delay(1);
       }
 #endif
@@ -140,7 +145,7 @@ void setup() {
     pinMode(SD_CS, OUTPUT);      
     digitalWrite(SD_CS, HIGH);
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    SPI.setFrequency(1000000);
+    SPI.setFrequency(8000000);
     SD.begin(SD_CS);
 #endif
 

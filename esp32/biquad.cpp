@@ -45,6 +45,7 @@ void biquad_calcFilterCoeffs(double* pCoeffs, int type, double fs, double fc, do
 	}
 }
 
+
 void biquad_spiTransfer(uint8_t* pCmd, uint8_t* pResponse) {
   uint8_t response[5];  // if read command, 5 response bytes = coefficient value
   SPI.beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
@@ -61,57 +62,109 @@ void biquad_spiTransfer(uint8_t* pCmd, uint8_t* pResponse) {
   }
   
 
-int biquad_loadCoeffs(double fsHz, double fcHz, double Q){
+int biquad_loadCoeffs_LR(double fsHz){
   double iir_coeffs[5] = {0.0};  
-  int64_t icoeff;
+  int64_t icoeff[5] = {0};
   uint64_t ucoeff;
-  uint8_t command_table[10][6] = {0};
+  uint8_t command_table[20][6] = {0};
   uint8_t addr;
   int inx;
 
       
-  Serial.printf("\r\nFs = %.1lfHz, Fc = %.1lfHz, Q = %lf\r\n\n", fsHz, fcHz, Q);
+  Serial.printf("\r\nFs = %.1lfHz, Fc = %.1lfHz, Q = %lf\r\n\n", fsHz, BIQUAD_CROSSOVER_FREQ_HZ,  BIQUAD_Q);
   
-  biquad_calcFilterCoeffs(iir_coeffs, LOW_PASS, fsHz, fcHz, Q );
+  biquad_calcFilterCoeffs(iir_coeffs, LOW_PASS, fsHz, BIQUAD_CROSSOVER_FREQ_HZ, BIQUAD_Q );
   for (inx = 0; inx < 5; inx++) {
-    icoeff = (int64_t)(iir_coeffs[inx] * (((int64_t)1) << 38));
-    ucoeff = (uint64_t)icoeff;
+    icoeff[inx] = (int64_t)(iir_coeffs[inx] * (((int64_t)1) << 36)); // 4.36 fixed point format
+    ucoeff = (uint64_t)icoeff[inx];
     addr = (uint8_t)inx;
-    command_table[inx][0] = (uint8_t) (0x10 | addr); // write command
+    command_table[inx][0] = (uint8_t) (0x20 | addr); // write command
     command_table[inx][1] = (uint8_t)((ucoeff>>32)&0xff);
     command_table[inx][2] = (uint8_t)((ucoeff>>24)&0xff);
     command_table[inx][3] = (uint8_t)((ucoeff>>16)&0xff);
     command_table[inx][4] = (uint8_t)((ucoeff>>8)&0xff);
     command_table[inx][5] = (uint8_t)(ucoeff&0xff);
-    Serial.printf("LP coeff[%d] = %lf ", inx, iir_coeffs[inx]);
-    Serial.printf("%02X%02X%02X%02X%02X\r\n", command_table[inx][1],command_table[inx][2],command_table[inx][3],command_table[inx][4],command_table[inx][5]);
     }
+    Serial.printf("LP0 b0 = %lf %lld\r\n",  iir_coeffs[0], icoeff[0]);
+    Serial.printf("LP0 b1 = %lf %lld\r\n",  iir_coeffs[1], icoeff[1]);
+    Serial.printf("LP0 b2 = %lf %lld\r\n",  iir_coeffs[2], icoeff[2]);
+    Serial.printf("LP0 a1 = %lf %lld\r\n",  iir_coeffs[3], icoeff[3]);
+    Serial.printf("LP0 a2 = %lf %lld\r\n",  iir_coeffs[4], icoeff[4]);
+
+#if 1
+   // Linkwitz-Riley, second biquad is identical
+  for (inx = 5; inx < 10; inx++) {
+    addr = (uint8_t)inx;
+    command_table[inx][0] = (uint8_t)(0x20 | addr); // write command
+    command_table[inx][1] = command_table[inx-5][1];
+    command_table[inx][2] = command_table[inx-5][2];
+    command_table[inx][3] = command_table[inx-5][3];
+    command_table[inx][4] = command_table[inx-5][4];
+    command_table[inx][5] = command_table[inx-5][5];
+    }
+#endif
+
+#if 0
+  for (inx = 5; inx < 10; inx++) {
+    addr = (uint8_t)inx;
+    command_table[inx][0] = (uint8_t)(0x20 | addr); // write command
+    }    
+    command_table[5][1] = 0x10;
+#endif    
+    
+
+  Serial.println();
   
-  biquad_calcFilterCoeffs(iir_coeffs, HIGH_PASS, fsHz, fcHz, Q );
+  biquad_calcFilterCoeffs(iir_coeffs, HIGH_PASS, fsHz, BIQUAD_CROSSOVER_FREQ_HZ, BIQUAD_Q);
   for (inx = 0; inx < 5; inx++) {
-    icoeff = (int64_t)(iir_coeffs[inx] * (((int64_t)1) << 38));
-    ucoeff = (uint64_t)icoeff;
-    addr = (uint8_t)(5+inx);
-    command_table[5+inx][0] = (uint8_t)(0x10 | addr); // write command
-    command_table[5+inx][1] = (uint8_t)((ucoeff>>32)&0xff);
-    command_table[5+inx][2] = (uint8_t)((ucoeff>>24)&0xff);
-    command_table[5+inx][3] = (uint8_t)((ucoeff>>16)&0xff);
-    command_table[5+inx][4] = (uint8_t)((ucoeff>>8)&0xff);
-    command_table[5+inx][5] = (uint8_t)(ucoeff&0xff);
-    Serial.printf("HP coeff[%d] = %lf ", inx, iir_coeffs[inx]);
-    Serial.printf("%02X%02X%02X%02X%02X\r\n", command_table[5+inx][1],command_table[5+inx][2],command_table[5+inx][3],command_table[5+inx][4],command_table[5+inx][5]);
+    icoeff[inx] = (int64_t)(iir_coeffs[inx] * (((int64_t)1) << 36)); // 4.36 fixed point format
+    ucoeff = (uint64_t)icoeff[inx];
+    addr = (uint8_t)(10+inx);
+    command_table[10+inx][0] = (uint8_t)(0x20 | addr); // write command
+    command_table[10+inx][1] = (uint8_t)((ucoeff>>32)&0xff);
+    command_table[10+inx][2] = (uint8_t)((ucoeff>>24)&0xff);
+    command_table[10+inx][3] = (uint8_t)((ucoeff>>16)&0xff);
+    command_table[10+inx][4] = (uint8_t)((ucoeff>>8)&0xff);
+    command_table[10+inx][5] = (uint8_t)(ucoeff&0xff);
     }
+    Serial.printf("HP0 b0 = %lf %lld\r\n",  iir_coeffs[0], icoeff[0]);
+    Serial.printf("HP0 b1 = %lf %lld\r\n",  iir_coeffs[1], icoeff[1]);
+    Serial.printf("HP0 b2 = %lf %lld\r\n",  iir_coeffs[2], icoeff[2]);
+    Serial.printf("HP0 a1 = %lf %lld\r\n",  iir_coeffs[3], icoeff[3]);    Serial.printf("HP0 a2 = %lf %lld\r\n",  iir_coeffs[4], icoeff[4]);
+
+#if 1
+   // Linkwitz-Riley, second biquad is identical
+  for (inx = 15; inx < 20; inx++) {
+    addr = (uint8_t)inx;
+    command_table[inx][0] = (uint8_t)(0x20 | addr); // write command
+    command_table[inx][1] = command_table[inx-5][1];
+    command_table[inx][2] = command_table[inx-5][2];
+    command_table[inx][3] = command_table[inx-5][3];
+    command_table[inx][4] = command_table[inx-5][4];
+    command_table[inx][5] = command_table[inx-5][5];
+  }
+#endif
+
+#if 0
+  for (inx = 15; inx < 20; inx++) {
+    addr = (uint8_t)inx;
+    command_table[inx][0] = (uint8_t)(0x20 | addr); // write command
+    }    
+    command_table[15][1] = 0x10;
+#endif    
+
 
   Serial.printf("\r\nSPI command byte buffers\r\n");
-  for (inx = 0; inx < 10; inx++) {
-    Serial.printf("%d : %02X %02X%02X%02X%02X%02X\r\n", 
+  for (inx = 0; inx < 20; inx++) {
+    Serial.printf("%d : %02X:%02X%02X%02X%02X%02X\r\n", 
     inx, command_table[inx][0], command_table[inx][1], command_table[inx][2], command_table[inx][3], command_table[inx][4],command_table[inx][5]);
+    if (inx%5 == 4) Serial.println();
     }
 
     uint8_t response[5] = {0};
 
-    Serial.printf("\r\nLoading coefficients "); 
-    for (inx = 0; inx < 10; inx++) {
+    Serial.printf("\r\nTransmitting coefficients "); 
+    for (inx = 0; inx < 20; inx++) {
       biquad_spiTransfer(command_table[inx], response);
       Serial.printf(".");
       }
@@ -119,11 +172,12 @@ int biquad_loadCoeffs(double fsHz, double fcHz, double Q){
     uint8_t cmd[6] = {0};
     int flagError = 0;
     Serial.printf("\r\nReading back coefficients\r\n"); 
-    for (inx = 0; inx < 10; inx++) {
-      cmd[0] = 0x20 | (uint8_t)inx; // read command
+    for (inx = 0; inx < 20; inx++) {
+      cmd[0] = 0x40 | (uint8_t)inx; // read command
       memset(response, 0, 5);
       biquad_spiTransfer(cmd, response);
       Serial.printf("Coeff[%d] = 0x%02X%02X%02X%02X%02X\r\n", inx, response[0],response[1],response[2],response[3],response[4]);
+      if (inx%5 == 4) Serial.println();
       if ( (response[0] != command_table[inx][1])  ||
           (response[1] != command_table[inx][2])  ||
           (response[2] != command_table[inx][3])  ||
@@ -140,7 +194,7 @@ int biquad_loadCoeffs(double fsHz, double fcHz, double Q){
       }
     else {
       Serial.printf("\r\nFlag biquad coefficients OK to load\r\n"); 
-      cmd[0] = 0x30; // command to signal FPGA audiosystem to load new coefficients
+      cmd[0] = 0x60; // command to signal FPGA audiosystem to load new coefficients
       biquad_spiTransfer(cmd, response);
       return 1;
       }

@@ -18,7 +18,7 @@ high-pass channels on two TAS5753MD stereo I2S power amplifiers.
 
 * FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loader modules use the on-board
 system clock.
-* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone IV board), and in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer) board.
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone IV board), and in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
 * I increased the filter coefficient precision from 2.30 to 2.38 as I want to
 be able to use the crossover filters at lower Fc/Fs values, e.g. for a sub-woofer crossover at ~300Hz. 
 In this case some of the filter coefficients are small enough to cause filter instability due to fixed-point arithmetic coefficient quantization issues, so require increased fractional resolution.
@@ -27,7 +27,6 @@ In this case some of the filter coefficients are small enough to cause filter in
 
 <img src="xover_330Hz.png" />
 
-As a result, the FPGA embedded multiplier usage has gone up from 63% to 100%. Ah well.
 
 <img src="fpga_resource_usage.png" />
 
