@@ -6,7 +6,10 @@
 a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
-* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters.
+* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters. For L-R filters, the
+sum of the low pass and high pass outputs is flat across the crossover frequency.
+* The cascaded filters do not have to be identical - there is separate memory for each of the filter coefficients. So we can implement
+equalization into the filters if necessary.
 
 * Using Octave to get the 2nd order butterworth filter coefficients
 
@@ -18,14 +21,15 @@ high-pass channels on two TAS5753MD stereo I2S power amplifiers.
 
 * FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loader modules use the on-board
 system clock.
-* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone IV board), and in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
-* I increased the filter coefficient precision from 2.30 to 2.38 as I want to
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board), and in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
+* Data samples are max 24bits. The I2S receiver can handle 16/16 and 24/32 bit packaging.
+* Filter coefficients are 40bit, using 4.36 format. This gives us some headroom for equalization, and I want to
 be able to use the crossover filters at lower Fc/Fs values, e.g. for a sub-woofer crossover at ~300Hz. 
-In this case some of the filter coefficients are small enough to cause filter instability due to fixed-point arithmetic coefficient quantization issues, so require increased fractional resolution.
+In this case some of the filter coefficients are small enough to require increased fractional resolution to avoid numerical instability.
 
 <img src="xover_3400Hz.png" />
 
-<img src="xover_330Hz.png" />
+<img src="xover_340Hz.png" />
 
 
 <img src="fpga_resource_usage.png" />
