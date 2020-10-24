@@ -85,18 +85,19 @@ Bottom side of prototype board
 * MP2307 dc-dc module (5V supply for FPGA board, max 24V input)
 * AMS1117 LDO voltage regulator (3.3V supply for micro-SD and TAS5753MD)
 
-Three-way speakers with 7" sub-woofer, 4" mid-woofer and ribbon tweeter.
 <img src="prototype_fpga.jpg" />
+
+Three-way speakers with 7" sub-woofer, 4" mid-woofer and ribbon tweeter.
+
+<img src="prototype_speakers.jpg" />
 
 When testing the crossover at fc = 3400Hz, the TAS5753MD amplifiers drive the mid-woofers and tweeters.
 The sub-woofers are disconnected.
 
-<img src="prototype_speakers.jpg" />
-
 When testing the crossover at fc = 340Hz, a passive 2-way 2nd order LC crossover circuit (fc = 3400Hz) drives the
 mid-woofer and tweeters. The TAS5753MD amplifiers drive the sub-woofers and LC crossover inputs.
 
-<img src="crossover_filter.jpg" />
+<img src="passive_crossover.jpg" />
 
 
 
