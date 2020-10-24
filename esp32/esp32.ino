@@ -24,132 +24,119 @@
 
 #include <Arduino.h>
 #include "SPI.h"
-#ifdef WEB_RADIO
-#include "WiFiMulti.h"
-#endif
 #include "Audio.h"
 #include "biquad.h"
 #include <Ticker.h>
 
-
-#ifdef TAS5753MD
-#include <Wire.h>
-#include "tas5753md.h"
-#include "ESP32Encoder.h"
-#endif
-
-Ticker            Tickr;
-
-#ifdef SDCARD
-/*
- * uchaswas.wav
- * muratteri.wav
- * dialtone_441_24.wav
- * equinox_48khz.wav
- * sine_441_24.wav
- * baby_elephant.wav
- * rejoicing.wav
- * volcano.wav
- * fanfare.wav
- * cosmic_hippo.wav
- * dewdrops.wav
- * interlude.wav
- * global_safari.wav
- * sdan_jack_of_speed.mp3
- * soulwax_binary.mp3
- * srv_tin_pan_alley.mp3
- * yst_do_that.mp3
- * yst_hotel_california.mp3
- * cb_das_spiegel.mp3
- * yst_speak_softly.mp3
- * one_minute.mp3
- * kyla.mp3
- * hnk002.mp3
- * ragi_bali.mp3
- * el_buho_eglo.mp3
- */
-
-#include "SD.h"
-#include "FS.h"
-
-#define SD_CS          5
-#define SPI_MOSI      23
-#define SPI_MISO      19
-#define SPI_SCK       18
-
-char Songs[20][30] = {
-  "rejoicing.wav",
-  "volcano.wav",
-  "fanfare.wav",
-  "dewdrops.wav", 
-  "baby_elephant.wav",
-  "muratteri.wav",
-  "equinox_48khz.wav",
-  "el_buho_eglo.mp3",
-  "ragi_bali.mp3",
-  "hnk002.mp3",
-  "soulwax_binary.mp3", 
-  "srv_tin_pan_alley.mp3", 
-  "sdan_jack_of_speed.mp3",
-  "yst_hotel_california.mp3",
-  "yst_speak_softly.mp3", 
-  "kyla.mp3",
-  "one_minute_test.mp3"
-  };
-
-int SongIndex = 7;
-#endif
-
-
+Ticker  ticker;
+Audio   audio;
 
 #define I2S_SDO      14
 #define I2S_BCK      13
 #define I2S_WS       12
 
-
-Audio audio;
-
-#ifdef WEB_RADIO
-WiFiMulti wifiMulti;
-String ssid =     "---";
-String password = "----";
-#endif
-
+#define SPI_MOSI      23
+#define SPI_MISO      19
+#define SPI_SCK       18
 
 #ifdef TAS5753MD
-
-#define ENC_A  39
-#define ENC_B  36
-
-ESP32Encoder encoder;
-int64_t encoderCount = 0;
+  #include <Wire.h>
+  #include "tas5753md.h"
+  #include "ESP32Encoder.h"
+  
+  #define ENC_A  39
+  #define ENC_B  36
+  
+  ESP32Encoder encoder;
+  int64_t encoderCount = 0;
 #endif
 
-#define PIN_ENC_BTN  35
+#ifdef SDCARD
+  #include <SD.h>
+  #include <FS.h>
 
-void ICACHE_RAM_ATTR clock_tick() {
-   btn_debounce();
-   }
+  #define SD_CS          5
 
-volatile uint16_t BtnEState;
-volatile bool BtnEPressed = false;
+  File root;
+#endif
 
 
+#ifdef WEB_RADIO
+  #include "WiFiMulti.h"
+  WiFiMulti wifiMulti;
+  String ssid =     "---";
+  String password = "----";
+#endif
+
+
+#define PIN_ENC_BTN  34
 #define BTNE()  ((GPIO.in1.val >> (PIN_ENC_BTN - 32)) & 0x1 ? 1 : 0)
 
+volatile uint16_t BtnEState;
+volatile bool BtnEncPressed = false;
 
-void btn_debounce() {
+void ICACHE_RAM_ATTR btn_debounce(void) {
    BtnEState = ((BtnEState<<1) | ((uint16_t)BTNE()) );
    if ((BtnEState | 0xFFF0) == 0xFFF8) {
-     BtnEPressed = true;
+     BtnEncPressed = true;
      }    
    }
+
+void printDirectory(File dir) {
+  while (true) {
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+      }
+    if (!entry.isDirectory()) {
+      Serial.print(entry.name());
+      Serial.print("\t");
+      if (strstr(entry.name(), ".mp3")) Serial.println("MP3");
+      else
+      if (strstr(entry.name(), ".wav")) Serial.println("WAV");
+      else
+      Serial.println("???");
+      }
+    entry.close();
+    }
+}
+
+bool canPlay(const char* fileName) {
+  return ( strstr(fileName, ".mp3") || strstr(fileName, ".MP3") ||
+           strstr(fileName, ".wav") || strstr(fileName, ".WAV")) ? true : false;  
+  }
+
+void playNext(File dir) {
+    String fname;
+    while (true) {
+      File  entry =  dir.openNextFile();
+      if (!entry) {
+          dir.rewindDirectory();
+          }
+      else 
+      if ((!entry.isDirectory()) && canPlay(entry.name())) {
+        fname = entry.name();
+        entry.close();
+        break;
+        }
+      else {
+          entry.close();
+        }
+      }
+    Serial.print("playNext : ");
+    Serial.println(fname);
+    Serial.println();
+    audio.connecttoFS(SD, fname);
+    }
+   
+
      
 void setup() {
     Serial.begin(115200);
     pinMode(PIN_FPGA_CS, OUTPUT);
-    pinMode(PIN_ENC_BTN, INPUT);
     digitalWrite(PIN_FPGA_CS, HIGH);
+    pinMode(PIN_ENC_BTN, INPUT);
     
 #ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);
@@ -163,13 +150,15 @@ void setup() {
 #endif
     
 #ifdef SDCARD    
-    randomSeed(analogRead(34));
     pinMode(SD_CS, OUTPUT);      
     digitalWrite(SD_CS, HIGH);
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     SPI.setFrequency(8000000);
     SD.begin(SD_CS);
+    root = SD.open("/");
+    printDirectory(root);
 #endif
+
 
 #ifdef WEB_RADIO
     WiFi.mode(WIFI_STA);
@@ -187,10 +176,8 @@ void setup() {
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
     audio.setVolume(10); // 0...21
 
-#ifdef SDCARD    
-      //SongIndex = random(0,15);
-      audio.connecttoFS(SD, Songs[SongIndex]);
-      //audio.connecttoFS(SD, "dewdrops.wav");
+#ifdef SDCARD
+     playNext(root);    
 #endif
 
     
@@ -200,12 +187,13 @@ void setup() {
   //  audio.connecttohost("http://mp3.ffh.de/radioffh/hqlivestream.aac"); //  128k aac
   //  audio.connecttohost("http://mp3.ffh.de/radioffh/hqlivestream.mp3"); //  128k mp3
   //  audio.connecttospeech("Wenn die Hunde schlafen, kann der Wolf gut Schafe stehlen.", "de");
-  //  audio.connecttospeech("Conscious of its spiritual and moral heritage, the Union is founded.", "en");
 #endif
 
-   Tickr.attach_ms(40, clock_tick);
-   BtnEPressed = false;
-}
+   ticker.attach_ms(40, btn_debounce);
+   BtnEncPressed = false;
+  }
+
+
  
 void loop(){
   #ifdef TAS5753MD
@@ -217,66 +205,73 @@ void loop(){
         encoderCount = enc;
       }
   #endif    
-    if (BtnEPressed) {
-        //Serial.println("Enc btn pressed");
-        BtnEPressed = false;
+    if (BtnEncPressed) {
+        BtnEncPressed = false;
         audio.stopSong();
-        SongIndex++;
-        if (SongIndex > 16) SongIndex = 0;
-        audio.connecttoFS(SD, Songs[SongIndex]);
+        playNext(root);
         }
       
     audio.loop();
-/*    
-    if(Serial.available()){ // put streamURL in serial monitor
-        audio.stopSong();
-        String r=Serial.readString(); r.trim();
-        if(r.length()>5) audio.connecttohost(r);
-        log_i("free heap=%i", ESP.getFreeHeap());
     }
-    */
-}
 
-// optional
+
+
 void audio_info(const char *info){
-    Serial.print("info        "); Serial.println(info);
-}
-void audio_id3data(const char *info){  //id3 metadata
-    Serial.print("id3data     ");Serial.println(info);
-}
-void audio_eof_mp3(const char *info){  //end of file
-    Serial.print("eof_mp3     ");Serial.println(info);
-    SongIndex++;
-    if (SongIndex > 16) SongIndex = 0;
- //     SongIndex = random(0,10);
-    audio.connecttoFS(SD, Songs[SongIndex]);
+  Serial.print("info        "); 
+  Serial.println(info);
   }
   
-void audio_showstation(const char *info){
-    Serial.print("station     ");Serial.println(info);
-}
-void audio_showstreaminfo(const char *info){
-    Serial.print("streaminfo  ");Serial.println(info);
-}
-void audio_showstreamtitle(const char *info){
-    Serial.print("streamtitle ");Serial.println(info);
-}
-void audio_bitrate(const char *info){
-    Serial.print("bitrate     ");Serial.println(info);
-}
-void audio_commercial(const char *info){  //duration in sec
-    Serial.print("commercial  ");Serial.println(info);
-}
-void audio_icyurl(const char *info){  //homepage
-    Serial.print("icyurl      ");Serial.println(info);
-}
-void audio_lasthost(const char *info){  //stream URL played
-    Serial.print("lasthost    ");Serial.println(info);
-}
-void audio_eof_speech(const char *info){
-    Serial.print("eof_speech  ");Serial.println(info);
-}
+void audio_id3data(const char *info){  
+  Serial.print("id3data     ");
+  Serial.println(info);
+  }
 
+void audio_eof_mp3(const char *info){  
+  Serial.print("eof_mp3     ");
+  //Serial.println(info);
+  playNext(root);
+  }
+
+void audio_showstation(const char *info){
+  Serial.print("station     ");
+  Serial.println(info);
+  }
+  
+void audio_showstreaminfo(const char *info){
+  Serial.print("streaminfo  ");
+  Serial.println(info);
+  }
+
+void audio_showstreamtitle(const char *info){
+  Serial.print("streamtitle ");
+  Serial.println(info);
+  }
+
+void audio_bitrate(const char *info){
+  Serial.print("bitrate     ");
+  Serial.println(info);
+  }
+  
+void audio_commercial(const char *info){
+  Serial.print("commercial  ");
+  Serial.println(info);
+  }
+  
+void audio_icyurl(const char *info){
+  Serial.print("icyurl      ");
+  Serial.println(info);
+  }
+  
+void audio_lasthost(const char *info){ 
+  Serial.print("lasthost    ");
+  Serial.println(info);
+  }
+  
+void audio_eof_speech(const char *info){
+  Serial.print("eof_speech  ");
+  Serial.println(info);
+  }
+  
 
 
     
