@@ -7,14 +7,14 @@ module i2s_rxtx_slave(
 	input wire i_ws,
 	
 	input wire i_sdi, // rx serial input
-	output signed [23:0] o_l24,	// rx parallel output left
-	output signed [23:0] o_r24, // rx parallel output right
+	output signed [`c_DATA_NBITS-1:0] o_l24,	// rx parallel output left
+	output signed [`c_DATA_NBITS-1:0] o_r24, // rx parallel output right
 	output wire o_sync, // rx parallel out data valid pulse
 
-	input wire signed [23:0] i_l_lp_24, // tx parallel input left lowpass
-	input wire signed [23:0] i_l_hp_24, // tx parallel input left highpass
-	input wire signed [23:0] i_r_lp_24, // tx parallel input right lowpass
-	input wire signed [23:0] i_r_hp_24, // tx parallel input right highpass
+	input wire signed [`c_DATA_NBITS-1:0] i_l_lp_24, // tx parallel input left lowpass
+	input wire signed [`c_DATA_NBITS-1:0] i_l_hp_24, // tx parallel input left highpass
+	input wire signed [`c_DATA_NBITS-1:0] i_r_lp_24, // tx parallel input right lowpass
+	input wire signed [`c_DATA_NBITS-1:0] i_r_hp_24, // tx parallel input right highpass
 	output reg o_sdo_l, // tx serial output left (lpf+hpf)	
 	output reg o_sdo_r // tx serial output right (lpf+hpf)
 	);
@@ -25,8 +25,8 @@ reg [31:0] s_shift32_in_l;
 reg [31:0] s_shift32_in_r;
 
 // i2s rx serial to parallel output
-reg [23:0] s_ol24;
-reg [23:0] s_or24;
+reg [`c_DATA_NBITS-1:0] s_ol24;
+reg [`c_DATA_NBITS-1:0] s_or24;
 
 // i2s tx shift registers
 reg [31:0] s_shift32_out_l_lp;
@@ -56,24 +56,24 @@ reg s_sync;
 integer s_ibitinx;
 integer s_obitinx;
 
-initial
-begin
-s_shift32_in_l = 32'b0;
-s_shift32_in_r = 32'b0;
-s_shift32_out_l_lp = 32'b0;
-s_shift32_out_l_hp = 32'b0;
-s_shift32_out_r_lp = 32'b0;
-s_shift32_out_r_hp = 32'b0;
-s_ol24 = 24'b0;
-s_or24 = 24'b0;
-
-s_bck_sync = 2'b00;
-s_ws_sync = 2'b00;
-s_sdi_d = 1'b0;
-s_sync = 1'b0;
-s_ibitinx = 31;
-s_obitinx = 31;
-end
+//initial
+//begin
+//s_shift32_in_l = 32'b0;
+//s_shift32_in_r = 32'b0;
+//s_shift32_out_l_lp = 32'b0;
+//s_shift32_out_l_hp = 32'b0;
+//s_shift32_out_r_lp = 32'b0;
+//s_shift32_out_r_hp = 32'b0;
+//s_ol24 = `c_DATA_NBITS'b0;
+//s_or24 = `c_DATA_NBITS'b0;
+//
+//s_bck_sync = 2'b00;
+//s_ws_sync = 2'b00;
+//s_sdi_d = 1'b0;
+//s_sync = 1'b0;
+//s_ibitinx = 31;
+//s_obitinx = 31;
+//end
 
 
 assign s_bck_posedge  = (s_bck_sync == 2'b01);

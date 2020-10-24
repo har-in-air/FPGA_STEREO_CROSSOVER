@@ -2,7 +2,7 @@
 <Project>
     <Project_Created_Time>2020-09-24 08:14:23</Project_Created_Time>
     <TD_Version>4.6.14314</TD_Version>
-    <UCode>11100000</UCode>
+    <UCode>01010110</UCode>
     <Name>fpga_xover</Name>
     <HardWare>
         <Family>EG4</Family>
@@ -28,7 +28,7 @@
         <CREATEINDEX>user</CREATEINDEX>
     </TOP_MODULE>
     <Project_Settings>
-        <Step_Last_Change>2020-09-29 16:09:48</Step_Last_Change>
+        <Step_Last_Change>2020-10-24 09:51:19</Step_Last_Change>
         <Current_Step>60</Current_Step>
         <Step_Status>true</Step_Status>
     </Project_Settings>

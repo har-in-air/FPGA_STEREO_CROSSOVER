@@ -12,8 +12,8 @@ module load_coeffs(
 	output wire o_miso,
 
 // coeff loader interface 
-	input wire [3:0] i_reg_addr, 
-	output wire [`c_IIR_NBITS-1:0] o_reg_data,
+	input wire [4:0] i_coeff_addr, 
+	output wire [`c_COEFF_NBITS-1:0] o_coeff_data,
 
 	output reg o_coeffs_rdy
 	);
@@ -21,18 +21,18 @@ module load_coeffs(
 
 // spi_slave connections
 reg s_tx_load;
-reg [`c_IIR_NBITS-1:0]  s_tx_data;
+reg [`c_COEFF_NBITS-1:0]  s_tx_data;
 wire [`c_BUF_NBITS-1:0]  s_rx_buf;
 wire s_rx_data_rdy;
 wire s_rx_cmd_rdy;
 
-reg [3:0] s_command;
+reg [2:0] s_command;
 
 // dpram single clock
 // a side, read/write by this module
-reg [3:0] s_dpram_addr_a;
-reg [`c_IIR_NBITS-1:0] s_dpram_data_a;
-wire [`c_IIR_NBITS-1:0] s_dpram_q_a;
+reg [4:0] s_dpram_addr_a;
+reg [`c_COEFF_NBITS-1:0] s_dpram_data_a;
+wire [`c_COEFF_NBITS-1:0] s_dpram_q_a;
 reg s_dpram_we_a;
 
 // b side, read only
@@ -52,14 +52,14 @@ localparam [2:0]
 
 reg [2:0] loader_state;
 
-initial 
-begin
-	s_command = 4'd0;
-	o_coeffs_rdy = 1'b0;
-	s_dpram_we_a = 1'b0;
-	s_dpram_addr_a = 4'd0;
-	s_dpram_data_a = `c_IIR_NBITS'd0;
-end
+//initial 
+//begin
+//	s_command = 3'd0;
+//	o_coeffs_rdy = 1'b0;
+//	s_dpram_we_a = 1'b0;
+//	s_dpram_addr_a = 5'd0;
+//	s_dpram_data_a = `c_COEFF_NBITS'd0;
+//end
 
 	
 spi_slave inst_spi_slave(
@@ -87,20 +87,20 @@ dpram inst_dpram(
 	.we_a(s_dpram_we_a),
 	.q_a(s_dpram_q_a),
 
-	.d_b(`c_IIR_NBITS'd0), //readonly, so hardwired to 0
-	.addr_b(i_reg_addr),
+	.d_b(`c_COEFF_NBITS'd0), //readonly, so hardwired to 0
+	.addr_b(i_coeff_addr),
 	.we_b(1'b0), // readonly
-	.q_b(o_reg_data)
+	.q_b(o_coeff_data)
 	);
 
 	
 // state machine for processing spi master commands
-// top byte[7:4]
+// top byte[7:5] = command
 // 1 = write coefficient
 // 2 = read coefficient
 // 3 = notify audiosystem of loaded coefficients
-// top byte[3:0] = dpram register address 0 - 15
-// lower bytes = IIR filter coefficient data
+// top byte[4:0] = dpram register address
+// lower 5 bytes = 40bit (4.36) IIR filter coefficient data
 
 always @(posedge i_clk_sys)
 begin
@@ -109,9 +109,9 @@ if (i_rstn == 1'b0)
 	loader_state <= IDLE;
 	s_dpram_we_a <= 1'b0;
 	o_coeffs_rdy <= 1'b0;
-	s_command <= 4'b0;
+	s_command <= 3'b0;
 	s_tx_load <= 1'b0;
-	s_tx_data <= `c_IIR_NBITS'd0;
+	s_tx_data <= `c_COEFF_NBITS'd0;
 	end
 else begin
 	case (loader_state)
@@ -119,13 +119,13 @@ else begin
 		begin
 		if (s_rx_cmd_rdy) 
 			begin
-			s_command <= s_rx_buf[`c_IIR_NBITS+7 : `c_IIR_NBITS+4];
-			s_dpram_addr_a <= s_rx_buf[`c_IIR_NBITS+3 : `c_IIR_NBITS];
+			s_command <= s_rx_buf[`c_COEFF_NBITS+7 : `c_COEFF_NBITS+5];
+			s_dpram_addr_a <= s_rx_buf[`c_COEFF_NBITS+4 : `c_COEFF_NBITS];
 			loader_state <=  CMD;
 			end
 		else 
 			begin
-			s_command <= 4'b0;
+			s_command <= 3'd0;
 			loader_state <= IDLE;
 			end
 		end
@@ -133,16 +133,16 @@ else begin
 				
 	CMD : 
 		case (s_command) 
-		4'd1 :
+		3'd1 :
    			loader_state <= WT_WR_DATA;
 
-		4'd2 :
+		3'd2 :
 			begin
 			s_dpram_we_a <= 1'b0;
 	  		loader_state <= RD_DATA; // read data from dpram register
 	  		end
 		
-		4'd3 : // command : notify audiosystem to load new coefficients
+		3'd3 : // command : notify audiosystem to load new coefficients
 			begin
 			o_coeffs_rdy <= 1'b1;
 	  		loader_state <= WT_CS;
@@ -156,7 +156,7 @@ else begin
 		begin
 		if (s_rx_data_rdy) 		
 			begin
-	  		s_dpram_data_a <= s_rx_buf[`c_IIR_NBITS-1:0];
+	  		s_dpram_data_a <= s_rx_buf[`c_COEFF_NBITS-1:0];
 	  		loader_state <= WR_DATA; 
 	  		end
 		else 

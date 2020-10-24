@@ -21,7 +21,8 @@ equalization into the filters if necessary.
 
 * FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loader modules use the on-board
 system clock.
-* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board), and in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board)
+* Implemented in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
 * Data samples are max 24bits. The I2S receiver can handle 16/16 and 24/32 bit packaging.
 * Filter coefficients are 40bit, using 4.36 format. This gives us some headroom for equalization, and I want to
 be able to use the crossover filters at lower Fc/Fs values, e.g. for a sub-woofer crossover at ~300Hz. 
@@ -31,8 +32,13 @@ In this case some of the filter coefficients are small enough to require increas
 
 <img src="xover_340Hz.png" />
 
+* Altera Cyclone IV EP4CE6 resource usage
 
-<img src="fpga_resource_usage.png" />
+<img src="fpga_altera_resource_usage.png" />
+
+* Anlogic EG4S20 resource usage
+
+<img src="fpga_anlogic_resource_usage.png" />
 
 * ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and loads
 the filter coefficients via an SPI interface to the FPGA.
@@ -70,15 +76,16 @@ Top side of prototype board
 * ESP32 breakout board
 * Micro-SD breakout board
 * Rotary encoder for volume control
-* 5V dc-dc converter and 3.3V LDO regulator module
 * Stacked TAS5753MD I2S power amplifiers
 * Tested with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
-DC-DC converter can handle input voltages up to 24V.
+MP2307 DC-DC converter module can handle input voltages up to 24V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
 Bottom side of prototype board 
 * Waveshare Core EP4CE6 FPGA development board.
+* 5V output dc-dc converter (5V supply for FPGA board, max 24V input)
+* 3.3V AMS1117 LDO voltage regulator (3.3V supply for micro-SD and TAS5753MD)
 
 <img src="prototype_fpga.jpg" />
 

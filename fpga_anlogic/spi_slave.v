@@ -10,7 +10,7 @@ module spi_slave(
 	input wire i_ssn,  // active low slave select
 	input wire i_mosi, // data master out, slave in
 	input wire i_tx_load, // tx buffer load
-	input wire [`c_IIR_NBITS-1:0] i_tx_data, // tx data to load in tx buffer
+	input wire [`c_COEFF_NBITS-1:0] i_tx_data, // tx data to load in tx buffer
 
 	output reg o_miso,	// data master in, slave out
 	output wire o_rx_cmd_rdy, // received command 
@@ -35,17 +35,17 @@ wire s_sclk_falling;
 wire s_start_frame;
 wire s_mosi;
 
-initial
-begin
-	s_bit_index = `c_BUF_NBITS - 1;
-	s_sclk_sync = 3'b000;
-	s_ssn_sync = 3'b000;
-	s_mosi_sync = 2'b00;
-	s_rx_buf = `c_BUF_NBITS'd0;
-	s_tx_buf = `c_BUF_NBITS'd0;
-end
+//initial
+//begin
+//	s_bit_index = `c_BUF_NBITS - 1;
+//	s_sclk_sync = 3'b000;
+//	s_ssn_sync = 3'b000;
+//	s_mosi_sync = 2'b00;
+//	s_rx_buf = `c_BUF_NBITS'd0;
+//	s_tx_buf = `c_BUF_NBITS'd0;
+//end
 
-assign o_rx_cmd_rdy = (s_bit_index == `c_IIR_NBITS-1);
+assign o_rx_cmd_rdy = (s_bit_index == `c_COEFF_NBITS-1);
 assign o_rx_data_rdy = (s_bit_index == -1);
 assign o_rx_buf = s_rx_buf;
 assign s_sclk_rising = (s_sclk_sync[2:1] == 2'b01);

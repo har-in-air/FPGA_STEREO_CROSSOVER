@@ -4,18 +4,18 @@
 
 module dpram(
 	input wire clk,
-	input wire [`c_IIR_NBITS-1:0] d_a,
-	input wire [`c_IIR_NBITS-1:0] d_b,
-	input wire [3:0] addr_a,
-	input wire [3:0] addr_b,
+	input wire [`c_COEFF_NBITS-1:0] d_a,
+	input wire [`c_COEFF_NBITS-1:0] d_b,
+	input wire [4:0] addr_a,
+	input wire [4:0] addr_b,
 	input wire we_a,
 	input wire we_b,
-	output reg [`c_IIR_NBITS-1:0] q_a,
-	output reg [`c_IIR_NBITS-1:0] q_b
+	output reg [`c_COEFF_NBITS-1:0] q_a,
+	output reg [`c_COEFF_NBITS-1:0] q_b
 	);	
 
 // Shared memory
-reg [`c_IIR_NBITS-1:0] mem [`c_NUM_REGS-1:0];
+reg [`c_COEFF_NBITS-1:0] mem [`c_NCOEFFS-1:0];
  
 // Port A
 always @(posedge clk) 

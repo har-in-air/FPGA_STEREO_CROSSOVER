@@ -134,7 +134,7 @@ if (rising_edge(i_mck)) then
 	case iir_state is
 	when 0 =>
 	-- idle state, start when valid sample arrives
--- HPF butterworth 0
+-- HPF biquad 0
     if (i_sample_valid = '1') then
         -- load multiplier with i_iir, i_hp0_b0
         s_mult_in_a	<= i_iir;
@@ -191,7 +191,7 @@ if (rising_edge(i_mck)) then
         s_hpfxo_z2	<= s_hpfxo_z1;
 		  iir_state	<= 7;
 
--- HPF butterworth 2
+-- HPF biquad 1
 
 	when 7 =>
         -- load multiplier with s_hpfx, i_hp1_b0
@@ -247,7 +247,7 @@ if (rising_edge(i_mck)) then
 		  s_hpfxi_z2 	<= s_hpfxi_z1;
 		  iir_state		<= 14;
 
----LPF Butterworth 0
+---LPF biquad 0
 
 	when 14 =>
         -- load multiplier with i_iir * i_lp0_b0
