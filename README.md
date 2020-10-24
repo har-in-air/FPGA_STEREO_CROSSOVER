@@ -6,11 +6,12 @@
 a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
-* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters. For L-R filters, the
+* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board)
+* Implemented in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
+* Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters. For Linkwitz-Riley filters, the
 sum of the low pass and high pass outputs is flat across the crossover frequency.
-* The cascaded filters do not have to be identical - there is separate memory for each of the filter coefficients. So we can implement
-equalization into the filters if necessary.
-
+* The cascaded filters do not have to be identical. There is memory storage for four unique biquad filters, wo we can implement
+equalization if necessary.
 * Using Octave to get the 2nd order butterworth filter coefficients
 
 <img src="octave_filter.png" /> 
@@ -19,14 +20,12 @@ equalization into the filters if necessary.
 
 <img src="crossover_filter.png" />
 
-* FPGA audio processing modules are clocked by the external MCK. Slave SPI interface and coefficient loader modules use the on-board
-system clock.
-* Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board)
-* Implemented in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
-* Data samples are max 24bits. The I2S receiver can handle 16/16 and 24/32 bit packaging.
-* Filter coefficients are 40bit, using 4.36 format. This gives us some headroom for equalization, and I want to
+* FPGA audio processing modules are clocked by the external MCK from the ESP32 board. This will vary depending on the audio source sample rate and data packaging. 
+* Top level, slave SPI interface and coefficient loader modules use the on-board system clock (50MHz for the Waveshare Cyclone IV board, 24MHz for the Sipeed Tang Primer).
+* Audio samples are max 24bits. The I2S receiver can handle 16/16 and 24/32 bit packaging.
+* Filter coefficients are 40bit (4.36) 2's complement. The 4 integer bits give us some headroom for equalization, and I want to
 be able to use the crossover filters at lower Fc/Fs values, e.g. for a sub-woofer crossover at ~300Hz. 
-In this case some of the filter coefficients are small enough to require increased fractional resolution to avoid numerical instability.
+In this case some of the filter coefficients are small enough to benefit from the 36bits of fractional resolution.
 
 <img src="xover_3400Hz.png" />
 
@@ -40,8 +39,8 @@ In this case some of the filter coefficients are small enough to require increas
 
 <img src="fpga_anlogic_resource_usage.png" />
 
-* ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and loads
-the filter coefficients via an SPI interface to the FPGA.
+* ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and updates
+the FPGA via an SPI interface.
 
 <img src="load_coeffs.png" />
 
@@ -77,8 +76,7 @@ Top side of prototype board
 * Micro-SD breakout board
 * Rotary encoder for volume control
 * Stacked TAS5753MD I2S power amplifiers
-* Tested with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V, and the 
-MP2307 DC-DC converter module can handle input voltages up to 24V.
+* Tested with a 19.5V 4.7A laptop power supply. The TAS5753MD power amplifier is rated for 26V.
 
 <img src="prototype_esp32_tas5753md.jpg" />
 
