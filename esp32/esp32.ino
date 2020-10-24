@@ -29,6 +29,7 @@
 #endif
 #include "Audio.h"
 #include "biquad.h"
+#include <Ticker.h>
 
 
 #ifdef TAS5753MD
@@ -37,6 +38,7 @@
 #include "ESP32Encoder.h"
 #endif
 
+Ticker            Tickr;
 
 #ifdef SDCARD
 /*
@@ -123,10 +125,30 @@ ESP32Encoder encoder;
 int64_t encoderCount = 0;
 #endif
 
-  
+#define PIN_ENC_BTN  35
+
+void ICACHE_RAM_ATTR clock_tick() {
+   btn_debounce();
+   }
+
+volatile uint16_t BtnEState;
+volatile bool BtnEPressed = false;
+
+
+#define BTNE()  ((GPIO.in1.val >> (PIN_ENC_BTN - 32)) & 0x1 ? 1 : 0)
+
+
+void btn_debounce() {
+   BtnEState = ((BtnEState<<1) | ((uint16_t)BTNE()) );
+   if ((BtnEState | 0xFFF0) == 0xFFF8) {
+     BtnEPressed = true;
+     }    
+   }
+     
 void setup() {
     Serial.begin(115200);
     pinMode(PIN_FPGA_CS, OUTPUT);
+    pinMode(PIN_ENC_BTN, INPUT);
     digitalWrite(PIN_FPGA_CS, HIGH);
     
 #ifdef TAS5753MD
@@ -180,6 +202,9 @@ void setup() {
   //  audio.connecttospeech("Wenn die Hunde schlafen, kann der Wolf gut Schafe stehlen.", "de");
   //  audio.connecttospeech("Conscious of its spiritual and moral heritage, the Union is founded.", "en");
 #endif
+
+   Tickr.attach_ms(40, clock_tick);
+   BtnEPressed = false;
 }
  
 void loop(){
@@ -192,6 +217,15 @@ void loop(){
         encoderCount = enc;
       }
   #endif    
+    if (BtnEPressed) {
+        //Serial.println("Enc btn pressed");
+        BtnEPressed = false;
+        audio.stopSong();
+        SongIndex++;
+        if (SongIndex > 16) SongIndex = 0;
+        audio.connecttoFS(SD, Songs[SongIndex]);
+        }
+      
     audio.loop();
 /*    
     if(Serial.available()){ // put streamURL in serial monitor
@@ -213,7 +247,7 @@ void audio_id3data(const char *info){  //id3 metadata
 void audio_eof_mp3(const char *info){  //end of file
     Serial.print("eof_mp3     ");Serial.println(info);
     SongIndex++;
-    if (SongIndex > 14) SongIndex = 0;
+    if (SongIndex > 16) SongIndex = 0;
  //     SongIndex = random(0,10);
     audio.connecttoFS(SD, Songs[SongIndex]);
   }
