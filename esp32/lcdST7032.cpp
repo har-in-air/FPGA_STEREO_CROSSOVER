@@ -4,14 +4,14 @@
 #include "lcdST7032.h"
 
 static uint8_t displayOnOffSetting = (DISPLAY_ON_OFF | DISPLAY_ON_OFF_D);
-static uint8_t contrast = 0x18;
+static uint8_t contrast = 20;
 
 
 void lcd_begin() {
    digitalWrite(LCD_RST, LOW);
-   delay(50);
+   delay(10);
    digitalWrite(LCD_RST, HIGH);
-   delay(50);
+   delay(10);
    lcd_Write_Instruction(FUNCTION_SET | FUNCTION_SET_DL | FUNCTION_SET_N | FUNCTION_SET_IS);
    lcd_Write_Instruction(INTERNAL_OSC_FREQ | INTERNAL_OSC_FREQ_BS | INTERNAL_OSC_FREQ_F2);
    lcd_Write_Instruction(POWER_ICON_BOST_CONTR | POWER_ICON_BOST_CONTR_Ion);
@@ -122,3 +122,29 @@ void lcd_printf(int r, int c, char* format, ...)    {
       sz++;
       }  
    }	
+
+void lcd_printScreen(char* format, ...)    {
+   char szbuf[50];
+   va_list args;
+   va_start(args,format);
+   vsprintf(szbuf,format,args);
+   va_end(args);
+   lcd_clear();
+   char *sz = szbuf;
+   int cnt = 0;
+   lcd_setCursor(0,0);
+   while (*sz && (cnt < 16)) {
+      lcd_Write_Data(*sz); 
+      sz++;
+      cnt++;
+      }  
+   if (*sz) {
+      lcd_setCursor(1,0);
+      cnt = 0;
+      while (*sz && (cnt < 16)) {
+        lcd_Write_Data(*sz); 
+        sz++;
+        cnt++;
+        }
+    }        
+  }

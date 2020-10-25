@@ -7,6 +7,8 @@
 // INTERFACE        : I2C
 // VDD              : 2.7V-5.5V
 // Tested with MCU	: Arduino Uno, Attiny85@1mhz(5.0V), Attiny85@8mhz(5.0V) and ESP8266(3.3V)
+
+// modified HN
 //-------------------------------------------------------------------------------------------
 
 #ifndef LCD_ST7032_h
@@ -78,5 +80,6 @@ size_t lcd_write(uint8_t chr);
 void lcd_Write_Instruction(uint8_t cmd);
 void lcd_Write_Data(uint8_t data);
 void lcd_printf(int r, int c, char* format, ...);
+void lcd_printScreen(char* format, ...);
 
 #endif

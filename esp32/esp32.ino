@@ -96,7 +96,7 @@ bool canPlay(const char* fileName) {
 
 void playNext(File dir) {
     String fname;
-    char szName[20];
+    char szName[34];
     while (true) {
       File  entry =  dir.openNextFile();
       if (!entry) {
@@ -112,10 +112,8 @@ void playNext(File dir) {
           entry.close();
         }
       }
-    fname.toCharArray(szName, 18);
-    lcd_clear();
-    lcd_home();
-    lcd_printf(0,0,"%s", szName+1);//ignore the leading "/"
+    fname.toCharArray(szName, 34);
+    lcd_printScreen("%s", szName+1);//ignore the leading "/"
     Serial.print("playNext : ");
     Serial.println(fname);
     Serial.println();
@@ -134,9 +132,7 @@ void setup() {
     Wire.begin(I2C_SDA, I2C_SCL);
 
     lcd_begin();
-    lcd_printf(0,0,"ESP32+FPGA xover");
-    lcd_printf(1,0,"I2S player");
-    
+    lcd_printScreen("ESP32+FPGA-xover I2S player");
     
 #ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);

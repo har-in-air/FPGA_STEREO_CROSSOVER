@@ -61,6 +61,7 @@ The ESP32 code only reads wav/mp3 files encoded with 16bit data at 44.1kHz or 48
 * [FPGA Biquad IIR Filters](https://www.youtube.com/watch?v=eE6Qwv997cs)
 * [ESP32 SD I2S Audio](https://github.com/schreibfaul1/ESP32-audioI2S)
 * [Cascaded Biquad filter coefficient calculation](https://github.com/igorinov/biquad)
+* [ST7032 LCD library](https://github.com/olkal/LCD_ST7032)
 
 # Useful links
 
