@@ -29,8 +29,6 @@
 #include "biquad.h"
 #include "lcdST7032.h"
 
-//#include "i2c.h"
-
 Ticker  ticker;
 Audio   audio;
 
@@ -77,12 +75,6 @@ void printDirectory(File dir) {
       }
     if (!entry.isDirectory()) {
       Serial.print(entry.name());
-      Serial.print("\t");
-      if (strstr(entry.name(), ".mp3")) Serial.println("MP3");
-      else
-      if (strstr(entry.name(), ".wav")) Serial.println("WAV");
-      else
-      Serial.println("???");
       }
     entry.close();
     }
