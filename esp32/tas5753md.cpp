@@ -1,15 +1,13 @@
 #include <Arduino.h>
-#include <Wire.h>
+#include "config.h"
 #include "tas5753md.h"
+#include "i2c.h"
 
 #define TA0
 #define TA1
 
 #define VOLUME_DELTA 0x04
 
-static void i2c_writeByte(uint8_t deviceAddress, uint8_t registerAddress, uint8_t d);
-static void i2c_writeBuffer(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pBuffer, int numBytes);
-static uint8_t i2c_readByte(uint8_t deviceAddress, uint8_t registerAddress);
 
 
 static uint16_t volume = 0x180;// max 0x000, min 0x3FF (mute)
@@ -78,8 +76,6 @@ int tas5753md_config(void) {
     delay(10);
     digitalWrite(TAS_RST, 1);
     delay(20);
-
-    Wire.begin(I2C_SDA, I2C_SCL,100000);
 
     // device id should return 0x41
     #ifdef TA0
@@ -160,29 +156,4 @@ int tas5753md_config(void) {
 	  }
 
  
- void i2c_writeByte(uint8_t deviceAddress, uint8_t registerAddress, uint8_t d) {
-  Wire.beginTransmission(deviceAddress);  
-  Wire.write(registerAddress);
-  Wire.write(d);
-  Wire.endTransmission();     
-  }
 
-void i2c_writeBuffer(uint8_t deviceAddress, uint8_t registerAddress, uint8_t* pBuffer, int numBytes) {
-  Wire.beginTransmission(deviceAddress);  
-  Wire.write(registerAddress);
-  for (int inx = 0; inx < numBytes; inx++) {
-    Wire.write(pBuffer[inx]);
-    }           
-  Wire.endTransmission();     
-  }
-
-uint8_t i2c_readByte(uint8_t deviceAddress, uint8_t registerAddress){
-  uint8_t d; 
-  Wire.beginTransmission(deviceAddress);
-  Wire.write(registerAddress);
-  Wire.endTransmission(false); // restart
-  Wire.requestFrom(deviceAddress, (uint8_t) 1);
-  d = Wire.read();
-  Wire.endTransmission(); 
-  return d;
-  }

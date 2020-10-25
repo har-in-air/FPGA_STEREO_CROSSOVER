@@ -60,19 +60,13 @@ reg signed [`c_DATA_NBITS-1:0] s_in_z2;
 
 // intermediate lpf filter outputs and delay registers
 reg signed [`c_DATA_NBITS-1:0] s_lpfx;
-reg signed [`c_DATA_NBITS-1:0] s_lpfxo_z1;
-reg signed [`c_DATA_NBITS-1:0] s_lpfxo_z2;
-
-reg signed [`c_DATA_NBITS-1:0] s_lpfxi_z1;
-reg signed [`c_DATA_NBITS-1:0] s_lpfxi_z2;
+reg signed [`c_DATA_NBITS-1:0] s_lpfx_z1;
+reg signed [`c_DATA_NBITS-1:0] s_lpfx_z2;
 
 // intermediate hpf filter outputs and delay registers
 reg signed [`c_DATA_NBITS-1:0] s_hpfx;
-reg signed [`c_DATA_NBITS-1:0] s_hpfxo_z1;
-reg signed [`c_DATA_NBITS-1:0] s_hpfxo_z2;
-
-reg signed [`c_DATA_NBITS-1:0] s_hpfxi_z1;
-reg signed [`c_DATA_NBITS-1:0] s_hpfxi_z2;
+reg signed [`c_DATA_NBITS-1:0] s_hpfx_z1;
+reg signed [`c_DATA_NBITS-1:0] s_hpfx_z2;
 
 // final lpf outputs and delay registers
 reg signed [`c_DATA_NBITS-1:0] s_iir_lpf_z1;
@@ -94,15 +88,11 @@ reg signed [`c_DATA_NBITS-1:0] s_iir_hpf_z2;
 //s_in_z1 = `c_DATA_NBITS'd0;
 //s_in_z2 = `c_DATA_NBITS'd0;
 //s_lpfx = `c_DATA_NBITS'd0;
-//s_lpfxo_z1 = `c_DATA_NBITS'd0;
-//s_lpfxo_z2 = `c_DATA_NBITS'd0;
-//s_lpfxi_z1 = `c_DATA_NBITS'd0;
-//s_lpfxi_z2 = `c_DATA_NBITS'd0;
+//s_lpfx_z1 = `c_DATA_NBITS'd0;
+//s_lpfx_z2 = `c_DATA_NBITS'd0;
 //s_hpfx = `c_DATA_NBITS'd0;
-//s_hpfxo_z1 = `c_DATA_NBITS'd0;
-//s_hpfxo_z2 = `c_DATA_NBITS'd0;
-//s_hpfxi_z1 = `c_DATA_NBITS'd0;
-//s_hpfxi_z2 = `c_DATA_NBITS'd0;
+//s_hpfx_z1 = `c_DATA_NBITS'd0;
+//s_hpfx_z2 = `c_DATA_NBITS'd0;
 //s_iir_lpf_z1 = `c_DATA_NBITS'd0;
 //s_iir_lpf_z2 = `c_DATA_NBITS'd0;
 //s_iir_hpf_z1 = `c_DATA_NBITS'd0;
@@ -164,34 +154,31 @@ begin
 		
     3: begin
         //accumulate (s_in_z2 * i_hp0_b2)
-        //load multiplier with s_hpfxo_z1 and i_hp0_a1
+        //load multiplier with s_hpfx_z1 and i_hp0_a1
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxo_z1;
+        s_mult_in_a	<= s_hpfx_z1;
         s_mult_in_b	<= i_hp0_a1;
         iir_state	<= 4;
 		end
 		
   	4: begin 
-        //accumulate negative (s_hpfxo_z1 * i_hp0_a1)
-        //load multiplier with s_hpfxo_z2 and i_hp0_a2
+        //accumulate negative (s_hpfx_z1 * i_hp0_a1)
+        //load multiplier with s_hpfx_z2 and i_hp0_a2
         s_accum		<= s_accum - s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxo_z2;
+        s_mult_in_a	<= s_hpfx_z2;
         s_mult_in_b	<= i_hp0_a2;
         iir_state	<= 5;
 		end	
     
     5: begin
-        //accumulate negative  (s_hpfxo_z2 * i_hp0_a2)
+        //accumulate negative  (s_hpfx_z2 * i_hp0_a2)
         s_accum		<= s_accum - s_mult_out_resize;
         iir_state	<= 6;
         end
         
     6: begin
-        //save resized accumulator to s_hpfx (first butterworth filter output)
-        //save s_hpfx delay registers
+        //save resized accumulator to s_hpfx (first biquad filter output)
         s_hpfx		<= s_accum_resize;
-        s_hpfxo_z1	<= s_accum_resize;
-        s_hpfxo_z2	<= s_hpfxo_z1;
 		iir_state	<= 7;
 		end
 		
@@ -206,24 +193,24 @@ begin
 		
     8: begin
         //save  (s_hpfx * i_hp1_b0) to accum
-        //load multiplier with s_hpfxi_z1 and i_hp1_b1
+        //load multiplier with s_hpfx_z1 and i_hp1_b1
         s_accum		<= s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxi_z1;
+        s_mult_in_a	<= s_hpfx_z1;
         s_mult_in_b	<= i_hp1_b1;
         iir_state	<= 9;
 		end
 		
     9: begin
-        //accumulate (s_hpfxi_z1 * i_hp1_b1) 
-        //load multiplier with s_hpfxi_z2 and i_hp1_b2
+        //accumulate (s_hpfx_z1 * i_hp1_b1) 
+        //load multiplier with s_hpfx_z2 and i_hp1_b2
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxi_z2;
+        s_mult_in_a	<= s_hpfx_z2;
         s_mult_in_b	<= i_hp1_b2;
         iir_state	<= 10;
 		end
 		
     10: begin
-        //accumulate resized (s_hpfxi_z2 * i_hp1_b2)
+        //accumulate resized (s_hpfx_z2 * i_hp1_b2)
         //load multiplier with s_iir_hpf_z1 and i_hp1_a1
         s_accum		<= s_accum + s_mult_out_resize;
         s_mult_in_a	<= s_iir_hpf_z1;
@@ -252,10 +239,10 @@ begin
         o_iir_hpf	<= s_accum_resize;
         s_iir_hpf_z1	<= s_accum_resize;
         s_iir_hpf_z2	<= s_iir_hpf_z1;
-		  s_hpfxi_z1 <= s_hpfx;
-		  s_hpfxi_z2 <= s_hpfxi_z1;
-			iir_state	<= 14;
-			end
+		s_hpfx_z1 <= s_hpfx;
+		s_hpfx_z2 <= s_hpfx_z1;
+		iir_state	<= 14;
+		end
 		
 //LPF biquad 0
 
@@ -286,24 +273,24 @@ begin
 		
     17: begin
         //accumulate (s_in_z2 * i_lp0_b2)
-        //load multiplier with s_lpfxo_z1 and i_lp0_a1
+        //load multiplier with s_lpfx_z1 and i_lp0_a1
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxo_z1;
+        s_mult_in_a	<= s_lpfx_z1;
         s_mult_in_b	<= i_lp0_a1;
         iir_state	<= 18;
 		end
 		
     18: begin
-        //accumulate negative (s_lpfxo_z1 * i_lp0_a1)
-        //load multiplier with s_lpfxo_z2 and i_lp0_a2
+        //accumulate negative (s_lpfx_z1 * i_lp0_a1)
+        //load multiplier with s_lpfx_z2 and i_lp0_a2
         s_accum		<= s_accum - s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxo_z2;
+        s_mult_in_a	<= s_lpfx_z2;
         s_mult_in_b	<= i_lp0_a2;
         iir_state	<= 19;
 		end
 		
     19: begin
-        //accumulate negative (s_lpfxo_z2 * i_lp0_a2)
+        //accumulate negative (s_lpfx_z2 * i_lp0_a2)
         s_accum		<= s_accum - s_mult_out_resize;
         iir_state	<= 20;
         end
@@ -312,8 +299,6 @@ begin
         //save resized accumulator to s_lpfx
         //save lpfx delay registers
         s_lpfx		<= s_accum_resize;
-        s_lpfxo_z1	<= s_accum_resize;
-        s_lpfxo_z2	<= s_lpfxo_z1;
         iir_state	<= 21;
 		end
 		
@@ -327,24 +312,24 @@ begin
 		
     22: begin
         // save (s_lpfx * i_lp1_b0) in accum
-        //load multiplier with s_lpfxi_z1 and i_lp1_b1
+        //load multiplier with s_lpfx_z1 and i_lp1_b1
         s_accum		<= s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxi_z1;
+        s_mult_in_a	<= s_lpfx_z1;
         s_mult_in_b	<= i_lp1_b1;
         iir_state	<= 23;
 		end
 		
     23: begin
-        //accumulate  (s_lpfxi_z1 * i_lp1_b1)
-        //load multiplier with s_lpfxi_z2 and i_lp1_b2
+        //accumulate  (s_lpfx_z1 * i_lp1_b1)
+        //load multiplier with s_lpfx_z2 and i_lp1_b2
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxi_z2;
+        s_mult_in_a	<= s_lpfx_z2;
         s_mult_in_b	<= i_lp1_b2;
         iir_state	<= 24;
 		end
 		
     24: begin
-       //accumulate  (s_lpfxi_z2 * i_lp1_b2)
+       //accumulate  (s_lpfx_z2 * i_lp1_b2)
        //load multiplier with s_iir_lpf_z1 and i_lp1_a1
         s_accum		<= s_accum + s_mult_out_resize;
         s_mult_in_a	<= s_iir_lpf_z1;
@@ -373,9 +358,9 @@ begin
         o_iir_lpf	<= s_accum_resize;
         s_iir_lpf_z1	<= s_accum_resize;
         s_iir_lpf_z2	<= s_iir_lpf_z1;
-		  s_lpfxi_z1 <= s_lpfx;
-		  s_lpfxi_z2 <= s_lpfxi_z1;
-		  //save input delay registers
+		s_lpfx_z1 <= s_lpfx;
+		s_lpfx_z2 <= s_lpfx_z1;
+		//save input delay registers
         s_in_z2			<= s_in_z1;
         s_in_z1			<= s_iir_in;
         //generate output valid pulse

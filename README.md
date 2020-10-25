@@ -75,6 +75,7 @@ Top side of prototype board
 * ESP32 breakout board
 * Micro-SD breakout board
 * KY-040 Rotary encoder with button for volume control and next track 
+* LCD 1602 (ST7032)
 * Stacked TAS5753MD I2S power amplifier modules. [Schematic and PCB layout](https://github.com/har-in-air/TAS5753MD-I2S-AUDIO-AMPLIFIER-Eagle)
 * The TAS5753MD power amplifier is rated for max 26V power supply. Tested with a 19.5V 4.7A laptop power brick. 
 

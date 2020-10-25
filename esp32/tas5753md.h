@@ -1,12 +1,7 @@
 #ifndef TAS5753MD_H_
 #define TAS5753MD_H_
 
-#define TAS_PDN   4
-#define TAS_RST   26
-#define TAS_PSW   27
 
-#define I2C_SDA   16
-#define I2C_SCL   17
 
 #define TAS5753MD_I2C_ADDR_0  ((uint8_t)0x2A)
 #define TAS5753MD_I2C_ADDR_1  ((uint8_t)0x2B)

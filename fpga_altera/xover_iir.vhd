@@ -82,21 +82,13 @@ signal s_in_z2		: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- lpf biquad0 filter outputs and delayed output registers
 signal s_lpfx       : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_lpfxo_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_lpfxo_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-
--- lpf biquad1 filter delayed inputs
-signal s_lpfxi_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_lpfxi_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_lpfx_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_lpfx_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- hpf biquad0 filter outputs and delay registers
 signal s_hpfx       : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_hpfxo_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_hpfxo_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-
--- hpf biquad1 filter delayed inputs
-signal s_hpfxi_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-signal s_hpfxi_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_hpfx_z1 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
+signal s_hpfx_z2 	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 
 -- final lpf outputs and delay registers
 signal s_iir_lpf    : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
@@ -107,7 +99,6 @@ signal s_iir_lpf_z2	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 signal s_iir_hpf    : signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 signal s_iir_hpf_z1	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
 signal s_iir_hpf_z2	: signed (c_DATA_NBITS-1 downto 0)	:= (others=>'0');
-
 
 begin
 
@@ -164,31 +155,28 @@ if (rising_edge(i_mck)) then
 
     when 3 =>
         --accumulate  (s_in_z2 * i_hp0_b2)
-        --load multiplier with s_hpfxo_z1 and i_hp0_a1
+        --load multiplier with s_hpfx_z1 and i_hp0_a1
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxo_z1;
+        s_mult_in_a	<= s_hpfx_z1;
         s_mult_in_b	<= i_hp0_a1;
         iir_state	<= 4;
 
   	when 4 => 
-        --accumulate negative (s_hpfxo_z1 * i_hp0_a1)
-        --load multiplier with s_hpfxo_z2 and i_hp0_a2
+        --accumulate negative (s_hpfx_z1 * i_hp0_a1)
+        --load multiplier with s_hpfx_z2 and i_hp0_a2
         s_accum		<= s_accum - s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxo_z2;
+        s_mult_in_a	<= s_hpfx_z2;
         s_mult_in_b	<= i_hp0_a2;
         iir_state	<= 5;
 	
     when 5 =>
-        --accumulate negative (s_hpfxo_z2 * i_hp0_a2)
+        --accumulate negative (s_hpfx_z2 * i_hp0_a2)
         s_accum		<= s_accum - s_mult_out_resize;
         iir_state	<= 6;
         
     when 6 =>
         --save resized accumulator to s_hpfx (intermediate output)
-        --save s_hpfx delay registers
         s_hpfx		<= s_accum_resize; 
-        s_hpfxo_z1	<= s_accum_resize; 
-        s_hpfxo_z2	<= s_hpfxo_z1;
 		  iir_state	<= 7;
 
 -- HPF biquad 1
@@ -201,22 +189,22 @@ if (rising_edge(i_mck)) then
 
     when 8 =>
         --save (s_hpfx * i_hp1_b0) to accum
-        --load multiplier with s_hpfxi_z1 and i_hp1_b1
+        --load multiplier with s_hpfx_z1 and i_hp1_b1
         s_accum		<= s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxi_z1;
+        s_mult_in_a	<= s_hpfx_z1;
         s_mult_in_b	<= i_hp1_b1;
         iir_state	<= 9;
 
     when 9 =>
-        --accumulate (s_hpfxi_z1 * i_hp1_b1) 
-        --load multiplier with s_hpfxi_z2 and i_hp1_b2
+        --accumulate (s_hpfx_z1 * i_hp1_b1) 
+        --load multiplier with s_hpfx_z2 and i_hp1_b2
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_hpfxi_z2;
+        s_mult_in_a	<= s_hpfx_z2;
         s_mult_in_b	<= i_hp1_b2;
         iir_state	<= 10;
 
     when 10 =>
-        --accumulate (s_hpfxi_z2 * i_hp1_b2)
+        --accumulate (s_hpfx_z2 * i_hp1_b2)
         --load multiplier with s_iir_hpf_z1 and i_hp1_a1
         s_accum		<= s_accum + s_mult_out_resize;
         s_mult_in_a	<= s_iir_hpf_z1;
@@ -241,10 +229,9 @@ if (rising_edge(i_mck)) then
         --save s_iir_hpf delay registers
         s_iir_hpf		<= s_accum_resize;
         s_iir_hpf_z1	<= s_accum_resize;
-        s_iir_hpf_z2	<= s_iir_hpf_z1;
-		  
-		  s_hpfxi_z1 	<= s_hpfx;
-		  s_hpfxi_z2 	<= s_hpfxi_z1;
+        s_iir_hpf_z2	<= s_iir_hpf_z1;		  
+		  s_hpfx_z1 	<= s_hpfx;
+		  s_hpfx_z2 	<= s_hpfx_z1;
 		  iir_state		<= 14;
 
 ---LPF biquad 0
@@ -273,31 +260,28 @@ if (rising_edge(i_mck)) then
 
     when 17 =>
         --accumulate (s_in_z2 * i_lp0_b2)
-        --load multiplier with s_lpfxo_z1 and i_lp0_a1
+        --load multiplier with s_lpfx_z1 and i_lp0_a1
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxo_z1;
+        s_mult_in_a	<= s_lpfx_z1;
         s_mult_in_b	<= i_lp0_a1;
         iir_state	<= 18;
 
     when 18 =>
-        --accumulate negative (s_lpfxo_z1 * i_lp0_a1)
-        --load multiplier with s_lpfxo_z2 and i_lp0_a2
+        --accumulate negative (s_lpfx_z1 * i_lp0_a1)
+        --load multiplier with s_lpfx_z2 and i_lp0_a2
         s_accum		<= s_accum - s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxo_z2;
+        s_mult_in_a	<= s_lpfx_z2;
         s_mult_in_b	<= i_lp0_a2;
         iir_state	<= 19;
 
     when 19 =>
-        --accumulate negative  (s_lpfxo_z2 * i_lp0_a2)
+        --accumulate negative  (s_lpfx_z2 * i_lp0_a2)
         s_accum		<= s_accum - s_mult_out_resize;
         iir_state	<= 20;
         
     when 20 =>
         --save resized accumulator to s_lpfx
-        --save lpfx delay registers
         s_lpfx		<= s_accum_resize;
-        s_lpfxo_z1	<= s_accum_resize;
-        s_lpfxo_z2	<= s_lpfxo_z1;
         iir_state	<= 21;
 
 -- LPF Butterworth 1
@@ -309,22 +293,22 @@ if (rising_edge(i_mck)) then
 
     when 22 =>
         --save (s_lpfx * i_lp1_b0) in accum
-        --load multiplier with s_lpfxi_z1 and i_lp1_b1
+        --load multiplier with s_lpfx_z1 and i_lp1_b1
         s_accum		<= s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxi_z1;
+        s_mult_in_a	<= s_lpfx_z1;
         s_mult_in_b	<= i_lp1_b1;
         iir_state	<= 23;
 
     when 23 =>
-        --accumulate (s_lpfxi_z1 * i_lp1_b1)
-        --load multiplier with s_lpfxi_z2 and i_lp1_b2
+        --accumulate (s_lpfx_z1 * i_lp1_b1)
+        --load multiplier with s_lpfx_z2 and i_lp1_b2
         s_accum		<= s_accum + s_mult_out_resize;
-        s_mult_in_a	<= s_lpfxi_z2;
+        s_mult_in_a	<= s_lpfx_z2;
         s_mult_in_b	<= i_lp1_b2;
         iir_state	<= 24;
 
     when 24 =>
-        --accumulate (s_lpfxi_z2 * i_lp1_b2)
+        --accumulate (s_lpfx_z2 * i_lp1_b2)
         --load multiplier with s_iir_lpf_z1 and i_lp1_a1
         s_accum		<= s_accum + s_mult_out_resize;
         s_mult_in_a	<= s_iir_lpf_z1;
@@ -349,10 +333,9 @@ if (rising_edge(i_mck)) then
         --save s_iir_lpf delay registers
         s_iir_lpf		<= s_accum_resize;
         s_iir_lpf_z1	<= s_accum_resize;
-        s_iir_lpf_z2	<= s_iir_lpf_z1;
-		  
-  		  s_lpfxi_z1 	<= s_lpfx;
-		  s_lpfxi_z2 	<= s_lpfxi_z1;
+        s_iir_lpf_z2	<= s_iir_lpf_z1;		  
+  		  s_lpfx_z1 	<= s_lpfx;
+		  s_lpfx_z2 	<= s_lpfx_z1;
 
 		--save input delay registers
         s_in_z1		<= s_iir_in;

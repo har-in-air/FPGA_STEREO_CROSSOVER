@@ -18,48 +18,35 @@
 // driving dual TAS5753MD I2S power amplifiers. Changed default I2S pins, modify Audio class to update
 // FPGA biquad filter coefficients on reading .wav/.mp3 file sample rate settings.
 
-#define TAS5753MD
-#define SDCARD
-//#define WEB_RADIO
 
 #include <Arduino.h>
-#include "SPI.h"
+#include <Ticker.h>
+#include <SPI.h>
+#include <Wire.h>
+#include "config.h"
+
 #include "Audio.h"
 #include "biquad.h"
-#include <Ticker.h>
+#include "lcdST7032.h"
+
+//#include "i2c.h"
 
 Ticker  ticker;
 Audio   audio;
 
-#define I2S_SDO      14
-#define I2S_BCK      13
-#define I2S_WS       12
-
-#define SPI_MOSI      23
-#define SPI_MISO      19
-#define SPI_SCK       18
-
-#ifdef TAS5753MD
-  #include <Wire.h>
-  #include "tas5753md.h"
-  #include "ESP32Encoder.h"
-  
-  #define ENC_A  39
-  #define ENC_B  36
-  
-  ESP32Encoder encoder;
-  int64_t encoderCount = 0;
-#endif
-
 #ifdef SDCARD
   #include <SD.h>
   #include <FS.h>
-
-  #define SD_CS          5
-
   File root;
 #endif
 
+#ifdef TAS5753MD
+  #include "tas5753md.h"
+  #include "ESP32Encoder.h"
+
+  ESP32Encoder encoder;
+  int64_t encoderCount = 0;
+#endif
 
 #ifdef WEB_RADIO
   #include "WiFiMulti.h"
@@ -69,15 +56,14 @@ Audio   audio;
 #endif
 
 
-#define PIN_ENC_BTN  34
-#define BTNE()  ((GPIO.in1.val >> (PIN_ENC_BTN - 32)) & 0x1 ? 1 : 0)
+#define BTNE()  ((GPIO.in1.val >> (PIN_ENC_BTN - 32)) & 0x1)
 
-volatile uint16_t BtnEState;
+volatile uint16_t BtnEncState;
 volatile bool BtnEncPressed = false;
 
-void ICACHE_RAM_ATTR btn_debounce(void) {
-   BtnEState = ((BtnEState<<1) | ((uint16_t)BTNE()) );
-   if ((BtnEState | 0xFFF0) == 0xFFF8) {
+void btn_debounce(void) {
+   BtnEncState = ((BtnEncState<<1) | ((uint16_t)BTNE()) );
+   if ((BtnEncState | 0xFFF0) == 0xFFF8) {
      BtnEncPressed = true;
      }    
    }
@@ -100,7 +86,8 @@ void printDirectory(File dir) {
       }
     entry.close();
     }
-}
+    Serial.println();
+  }
 
 bool canPlay(const char* fileName) {
   return ( strstr(fileName, ".mp3") || strstr(fileName, ".MP3") ||
@@ -109,6 +96,7 @@ bool canPlay(const char* fileName) {
 
 void playNext(File dir) {
     String fname;
+    char szName[20];
     while (true) {
       File  entry =  dir.openNextFile();
       if (!entry) {
@@ -124,6 +112,10 @@ void playNext(File dir) {
           entry.close();
         }
       }
+    fname.toCharArray(szName, 18);
+    lcd_clear();
+    lcd_home();
+    lcd_printf(0,0,"%s", szName+1);//ignore the leading "/"
     Serial.print("playNext : ");
     Serial.println(fname);
     Serial.println();
@@ -134,9 +126,17 @@ void playNext(File dir) {
      
 void setup() {
     Serial.begin(115200);
+    pinMode(LCD_RST, OUTPUT);
+    digitalWrite(LCD_RST, HIGH);    
     pinMode(PIN_FPGA_CS, OUTPUT);
     digitalWrite(PIN_FPGA_CS, HIGH);
     pinMode(PIN_ENC_BTN, INPUT);
+    Wire.begin(I2C_SDA, I2C_SCL);
+
+    lcd_begin();
+    lcd_printf(0,0,"ESP32+FPGA xover");
+    lcd_printf(1,0,"I2S player");
+    
     
 #ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);
@@ -189,7 +189,7 @@ void setup() {
   //  audio.connecttospeech("Wenn die Hunde schlafen, kann der Wolf gut Schafe stehlen.", "de");
 #endif
 
-   ticker.attach_ms(40, btn_debounce);
+   ticker.attach(0.025, btn_debounce);
    BtnEncPressed = false;
   }
 
@@ -222,12 +222,12 @@ void audio_info(const char *info){
   }
   
 void audio_id3data(const char *info){  
-  Serial.print("id3data     ");
-  Serial.println(info);
+  //Serial.print("id3data     ");
+  //Serial.println(info);
   }
 
 void audio_eof_mp3(const char *info){  
-  Serial.print("eof_mp3     ");
+  //Serial.print("eof_mp3     ");
   //Serial.println(info);
   playNext(root);
   }
