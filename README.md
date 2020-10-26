@@ -12,7 +12,7 @@ high-pass channels on two TAS5753MD stereo I2S power amplifiers.
 sum of the low pass and high pass outputs is flat across the crossover frequency.
 * The cascaded filters do not have to be identical. There is coefficient memory storage for four unique biquad filters, so we can implement
 equalization if necessary.
-* Using Octave to get the 2nd order butterworth filter coefficients
+* Using Octave to compute 2nd order butterworth filter coefficients
 
 <img src="octave_filter.png" /> 
 
@@ -27,8 +27,10 @@ equalization if necessary.
 be able to use the crossover filters at lower fc/fs values, e.g. for a sub-woofer crossover at 340Hz. 
 In this case some of the filter coefficients are small enough to benefit from the 36bits of fractional resolution.
 
+Filter coefficients @ Fc = 3400Hz
 <img src="xover_3400Hz.png" />
 
+Filter coefficients @ Fc = 340Hz
 <img src="xover_340Hz.png" />
 
 * Altera Cyclone IV EP4CE6 resource usage
