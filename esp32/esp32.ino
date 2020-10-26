@@ -132,7 +132,8 @@ void setup() {
     
     // failure configuring TAS5753MD, loop forever
     if (tas5753md_config() == 0) {
-      Serial.printf("Failure configuring TAS5753MD, exit setup and loop ...\r\n");
+      lcd_printScreen("TAS5753MD config error");
+      Serial.printf("TAS5753MD config error, exit setup and loop ...\r\n");
       while (1) delay(1);
       }
 #endif
