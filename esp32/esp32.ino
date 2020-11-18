@@ -36,6 +36,7 @@ Audio   audio;
   #include <SD.h>
   #include <FS.h>
   File root;
+  int NumFiles = 0;
 #endif
 
 #ifdef TAS5753MD
@@ -66,46 +67,87 @@ void btn_debounce(void) {
      }    
    }
 
-void printDirectory(File dir) {
+
+
+void countNumFiles(File dir) {
+  dir.rewindDirectory();
+  Serial.println("Scanning SD card directory...");
+  NumFiles = 0;
   while (true) {
     File entry =  dir.openNextFile();
     if (! entry) {
       // no more files
       break;
       }
-    if (!entry.isDirectory()) {
-      Serial.print(entry.name());
+    if ((!entry.isDirectory()) && canPlay(entry.name())) {
+      //Serial.printf("%d %s\r\n", entry, entry.name());
+      NumFiles++;
       }
     entry.close();
     }
-    Serial.println();
+   dir.rewindDirectory();
+   Serial.printf("\r\nNumber music files = %d\r\n", NumFiles);    
   }
+
+
+File selectFile(int number, File dir){
+  int counter = 0;
+  File return_entry;
+  dir.rewindDirectory();
+  while(true)  {
+    File entry = dir.openNextFile();
+    //Serial.println(entry.name());
+    if ((!entry.isDirectory()) && canPlay(entry.name())){
+        counter++;
+        }
+    if (counter == number)    {
+      return_entry = entry;
+      break;
+      }
+    entry.close();
+  }
+  return return_entry;
+}
+
+
+File selectFileIncrement(int number, File dir){
+  int counter = 0;
+  File return_entry;
+  while(true)  {
+    File entry = dir.openNextFile();
+   if (! entry) {
+      // no more files
+      dir.rewindDirectory();
+      }
+    else  {
+      //Serial.println(entry.name());
+      if ((!entry.isDirectory()) && canPlay(entry.name())){
+          counter++;
+          }
+      if (counter == number)    {
+        return_entry = entry;
+        break;
+        }
+      entry.close();
+      }
+  }
+  return return_entry;
+}
+
 
 bool canPlay(const char* fileName) {
   return ( strstr(fileName, ".mp3") || strstr(fileName, ".MP3") ||
            strstr(fileName, ".wav") || strstr(fileName, ".WAV")) ? true : false;  
   }
 
-void playNext(File dir) {
+
+void playNext(int index, File dir) {
     String fname;
     char szName[34];
-    while (true) {
-      File  entry =  dir.openNextFile();
-      if (!entry) {
-          dir.rewindDirectory();
-          }
-      else 
-      if ((!entry.isDirectory()) && canPlay(entry.name())) {
-        fname = entry.name();
-        entry.close();
-        break;
-        }
-      else {
-          entry.close();
-        }
-      }
+    File entry = selectFileIncrement(index, root);
+    fname = entry.name();       
     fname.toCharArray(szName, 34);
-    lcd_printScreen("%s", szName+1);//ignore the leading "/"
+    lcd_printScreen("%s", szName+1);//remove the leading "/"
     Serial.print("playNext : ");
     Serial.println(fname);
     Serial.println();
@@ -124,7 +166,9 @@ void setup() {
     Wire.begin(I2C_SDA, I2C_SCL);
 
     lcd_begin();
-    lcd_printScreen("ESP32+FPGA-xover I2S player");
+    lcd_printf(0,0,"ESP32 FPGA-xover");
+    lcd_printf(1,0,"Audio I2S player");
+    delay(2000);
     
 #ifdef TAS5753MD
     encoder.attachHalfQuad(ENC_A, ENC_B);
@@ -142,10 +186,12 @@ void setup() {
     pinMode(SD_CS, OUTPUT);      
     digitalWrite(SD_CS, HIGH);
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    SPI.setFrequency(8000000);
+    SPI.setFrequency(20000000);
     SD.begin(SD_CS);
+    adcAttachPin(35);
+    randomSeed(analogRead(35)); // pin35 is unused, and an analog ADC input 
     root = SD.open("/");
-    printDirectory(root);
+    //countNumFiles(root);
 #endif
 
 
@@ -166,7 +212,9 @@ void setup() {
     audio.setVolume(10); // 0...21
 
 #ifdef SDCARD
-     playNext(root);    
+     //int index = random(NumFiles)+1;
+     int index = random(50)+1;
+     playNext(index, root);    
 #endif
 
     
@@ -197,7 +245,8 @@ void loop(){
     if (BtnEncPressed) {
         BtnEncPressed = false;
         audio.stopSong();
-        playNext(root);
+        int index = random(20)+1;
+        playNext(index, root);
         }
       
     audio.loop();
@@ -218,7 +267,8 @@ void audio_id3data(const char *info){
 void audio_eof_mp3(const char *info){  
   //Serial.print("eof_mp3     ");
   //Serial.println(info);
-  playNext(root);
+  int index = random(20)+1;
+  playNext(index, root);
   }
 
 void audio_showstation(const char *info){
