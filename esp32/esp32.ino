@@ -23,12 +23,14 @@
 #include <Ticker.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <Preferences.h>
 #include "config.h"
 
 #include "Audio.h"
 #include "biquad.h"
 #include "lcdST7032.h"
 
+Preferences preferences;
 Ticker  ticker;
 Audio   audio;
 
@@ -68,48 +70,6 @@ void btn_debounce(void) {
    }
 
 
-
-void countNumFiles(File dir) {
-  dir.rewindDirectory();
-  Serial.println("Scanning SD card directory...");
-  NumFiles = 0;
-  while (true) {
-    File entry =  dir.openNextFile();
-    if (! entry) {
-      // no more files
-      break;
-      }
-    if ((!entry.isDirectory()) && canPlay(entry.name())) {
-      //Serial.printf("%d %s\r\n", entry, entry.name());
-      NumFiles++;
-      }
-    entry.close();
-    }
-   dir.rewindDirectory();
-   Serial.printf("\r\nNumber music files = %d\r\n", NumFiles);    
-  }
-
-
-File selectFile(int number, File dir){
-  int counter = 0;
-  File return_entry;
-  dir.rewindDirectory();
-  while(true)  {
-    File entry = dir.openNextFile();
-    //Serial.println(entry.name());
-    if ((!entry.isDirectory()) && canPlay(entry.name())){
-        counter++;
-        }
-    if (counter == number)    {
-      return_entry = entry;
-      break;
-      }
-    entry.close();
-  }
-  return return_entry;
-}
-
-
 File selectFileIncrement(int number, File dir){
   int counter = 0;
   File return_entry;
@@ -141,17 +101,31 @@ bool canPlay(const char* fileName) {
   }
 
 
+void playFirst(String songName) {
+  File entry = SD.open(songName);
+  if (entry) {
+    entry.close();
+    }
+  int increment = random(50)+1;
+  entry = selectFileIncrement(increment, root);      
+  preferences.putString("first_song",entry.name());
+  preferences.end();
+  char szName[34];
+  strcpy(szName, entry.name());     
+  lcd_printScreen("%s", szName+1);//remove the leading "/"
+  Serial.print("Play first ");Serial.println(entry.name());
+  audio.connecttoFS(SD, entry.name());
+  }
+
 void playNext(int index, File dir) {
-    String fname;
-    char szName[34];
     File entry = selectFileIncrement(index, root);
-    fname = entry.name();       
-    fname.toCharArray(szName, 34);
+    char szName[34];
+    strcpy(szName, entry.name());
     lcd_printScreen("%s", szName+1);//remove the leading "/"
     Serial.print("playNext : ");
-    Serial.println(fname);
+    Serial.println(szName);
     Serial.println();
-    audio.connecttoFS(SD, fname);
+    audio.connecttoFS(SD, entry.name());
     }
    
 
@@ -164,7 +138,7 @@ void setup() {
     digitalWrite(PIN_FPGA_CS, HIGH);
     pinMode(PIN_ENC_BTN, INPUT);
     Wire.begin(I2C_SDA, I2C_SCL);
-
+    
     lcd_begin();
     lcd_printf(0,0,"ESP32 FPGA-xover");
     lcd_printf(1,0,"Audio I2S player");
@@ -188,10 +162,9 @@ void setup() {
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     SPI.setFrequency(20000000);
     SD.begin(SD_CS);
-    adcAttachPin(35);
-    randomSeed(analogRead(35)); // pin35 is unused, and an analog ADC input 
+    adcAttachPin(35); // select unused floating pin 35 as analog ADC input 
+    randomSeed(analogRead(35)); // adc read from a floating pin gives an unpredictable number
     root = SD.open("/");
-    //countNumFiles(root);
 #endif
 
 
@@ -212,9 +185,12 @@ void setup() {
     audio.setVolume(10); // 0...21
 
 #ifdef SDCARD
-     //int index = random(NumFiles)+1;
-     int index = random(50)+1;
-     playNext(index, root);    
+  // Get the first song played last time, skip a random number of songs
+  // past it, and save this in preferences
+    preferences.begin("esp32_i2s", false);
+    String fileName = preferences.getString("first_song", String("not_found"));
+    Serial.print("First song played last time : "); Serial.println(fileName);
+    playFirst(fileName);
 #endif
 
     
@@ -245,6 +221,7 @@ void loop(){
     if (BtnEncPressed) {
         BtnEncPressed = false;
         audio.stopSong();
+        // skip a random number of songs (1..20) and play next
         int index = random(20)+1;
         playNext(index, root);
         }
@@ -265,8 +242,7 @@ void audio_id3data(const char *info){
   }
 
 void audio_eof_mp3(const char *info){  
-  //Serial.print("eof_mp3     ");
-  //Serial.println(info);
+  // skip a random number of songs and play next
   int index = random(20)+1;
   playNext(index, root);
   }
