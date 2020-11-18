@@ -160,7 +160,7 @@ void setup() {
     pinMode(SD_CS, OUTPUT);      
     digitalWrite(SD_CS, HIGH);
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    SPI.setFrequency(20000000);
+    SPI.setFrequency(10000000);
     SD.begin(SD_CS);
     adcAttachPin(35); // select unused floating pin 35 as analog ADC input 
     randomSeed(analogRead(35)); // adc read from a floating pin gives an unpredictable number
