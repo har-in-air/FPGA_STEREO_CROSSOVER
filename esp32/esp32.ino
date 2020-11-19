@@ -110,7 +110,7 @@ void playFirst(String songName) {
   entry = selectFileIncrement(increment, root);      
   preferences.putString("first_song",entry.name());
   preferences.end();
-  char szName[34];
+  char szName[60];
   strcpy(szName, entry.name());     
   lcd_printScreen("%s", szName+1);//remove the leading "/"
   Serial.print("Play first ");Serial.println(entry.name());
@@ -119,7 +119,7 @@ void playFirst(String songName) {
 
 void playNext(int index, File dir) {
     File entry = selectFileIncrement(index, root);
-    char szName[34];
+    char szName[60];
     strcpy(szName, entry.name());
     lcd_printScreen("%s", szName+1);//remove the leading "/"
     Serial.print("playNext : ");
