@@ -7,7 +7,7 @@ a master driving MCK, BCK and WS clocks.
 * FPGA implements an I2S slave interface and stereo 2-way crossover filters. It generates two I2S data output streams that drive low-pass and 
 high-pass channels on two TAS5753MD stereo I2S power amplifiers. 
 * Implemented in VHDL on Altera Cyclone IV EP4CE6E22 (WaveShare Cyclone CoreEP4CE6 board)
-* Implemented in Verilog on Anlogic EG4S20BG256 (Sipeed Tang Primer board).
+* [Also implemented in Verilog and tested on Anlogic EG4S20BG256 (Sipeed Tang Primer board)](https://github.com/har-in-air/SIPEED_TANG_PRIMER/tree/main/audio_crossover)
 * Crossover filters are 4th order Linkwitz-Riley, implemented as cascaded identical 2nd order Butterworth filters. For Linkwitz-Riley filters, the
 sum of the low pass and high pass outputs is flat across the crossover frequency.
 * The cascaded filters do not have to be identical. There is coefficient memory storage for four unique biquad filters, so we can implement
@@ -37,10 +37,6 @@ Filter coefficients @ Fc = 340Hz
 
 <img src="fpga_altera_resource_usage.png" />
 
-* Anlogic EG4S20 resource usage
-
-<img src="fpga_anlogic_resource_usage.png" />
-
 * ESP32 calculates the biquad filter coefficients based on the sample-rate of the audio file being played and updates
 the FPGA via an SPI interface.
 
@@ -49,7 +45,6 @@ the FPGA via an SPI interface.
 # Software development platform
 
 * Intel Quartus Prime Lite 19.1 (Linux), for Altera FPGA
-* Anlogic Tang Dynasty 4.6.2 64-bit (Linux), for Anlogic FPGA
 * Arduino 1.8.13 with arduino-ESP32 1.04 package
 * Ubuntu 20.04 amdx64 
 
@@ -78,7 +73,7 @@ Top side of prototype board
 * ESP32 breakout board
 * Micro-SD breakout board
 * KY-040 Rotary encoder with button for volume control and next track 
-* LCD 1602 (ST7032)
+* LCD 1602 (ST7032) with SPI interface
 * Stacked TAS5753MD I2S power amplifier modules. [Schematic and PCB layout](https://github.com/har-in-air/TAS5753MD-I2S-AUDIO-AMPLIFIER-Eagle)
 * The TAS5753MD power amplifier is rated for max 26V power supply. Tested with a 19.5V 4.7A laptop power brick. 
 
