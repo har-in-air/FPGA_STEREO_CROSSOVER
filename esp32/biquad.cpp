@@ -48,7 +48,11 @@ void biquad_calcFilterCoeffs(double* pCoeffs, int type, double fs, double fc, do
 
 void biquad_spiTransfer(uint8_t* pCmd, uint8_t* pResponse) {
   uint8_t response[5];  // if read command, 5 response bytes = coefficient value
-  SPI.beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE0));
+  // spi slave on fpga is configured for spi clock polarity 0 (idle = 0) and
+  // data capture on falling edge of clock (clock phase 1).
+  // Similarly this spi master (ESP32) should
+  // capture the miso signal from FPGA on the falling edge of the spi clock.
+  SPI.beginTransaction(SPISettings(spiClk, MSBFIRST, SPI_MODE1));
   digitalWrite(PIN_FPGA_CS, LOW);
   SPI.transfer(pCmd[0]); // command
   response[0] = SPI.transfer(pCmd[1]); 

@@ -99,7 +99,7 @@ begin
 	if i_rstn = '0' then
 		s_rx_buf <= (others => '0');
 	elsif rising_edge(i_clk) then
-		if s_sclk_rising = '1' and s_frame_active = '1' then
+		if s_sclk_falling = '1' and s_frame_active = '1' then
 			s_rx_buf(s_bit_index) <= s_mosi;
 		end if;
 	end if;
